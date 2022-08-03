@@ -2044,7 +2044,11 @@ static gentity_t *SpawnBuildable( gentity_t *builder, buildable_t buildable, con
 		G_TeamCommand( (team_t) builder->client->pers.team,
 		               va( "print_tr %s %s %s %s", ( readable[ 0 ] ) ?
 						QQ( N_("$1$ ^2built^* by $2$^*, ^3replacing^* $3$") ) :
+<<<<<<< HEAD
 						QQ( N_("$1$ ^2built^* by $2$$3$\n") ),
+=======
+						QQ( N_("$1$ ^2built^* by $2$$3$") ),
+>>>>>>> a4dff6eac (remove trailing newline from build prints)
 		                   Quote( BG_Buildable( built->s.modelindex )->humanName ),
 		                   Quote( builder->client->pers.netname ),
 		                   Quote( readable ) ) );
