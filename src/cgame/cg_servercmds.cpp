@@ -561,14 +561,14 @@ static void CG_Menu( int menuType, int arg )
 			break;
 
 		case MN_B_SUDDENDEATH_1:
-			longMsg = _("^SUDDEN DEATH HAS BEGUN.\n"
-						"^9You may only rebuild the following\n"
-						"^9buildings during Sudden Death:\n"
-						"^0Armoury\n"
-						"^0Medistation\n"
-						"^0Booster\n"
-						"^0Overmind\n"
-						"^0Reactor");
+			longMsg = _("^1SUDDEN DEATH HAS BEGUN.\n"
+						"^3You may only rebuild the following\n"
+						"^3buildings during Sudden Death:\n"
+						"^7Armoury\n"
+						"^7Medistation\n"
+						"^7Booster\n"
+						"^7Overmind\n"
+						"^7Reactor");
 			shortMsg = _("Building is limited during Sudden Death");
 			break;
 
