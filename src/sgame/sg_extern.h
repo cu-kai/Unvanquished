@@ -101,6 +101,9 @@ extern Cvar::Cvar<float> g_momentumDestroyMod;
 extern Cvar::Cvar<bool> g_humanAllowBuilding;
 extern Cvar::Cvar<bool> g_alienAllowBuilding;
 
+extern Cvar::Cvar<int> g_suddenDeathMode;
+extern Cvar::Cvar<int> g_suddenDeathTime;
+
 extern Cvar::Cvar<float> g_alienOffCreepRegenHalfLife;
 
 extern Cvar::Cvar<bool> g_teamImbalanceWarnings;

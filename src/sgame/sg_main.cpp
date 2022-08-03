@@ -146,6 +146,10 @@ Cvar::Cvar<bool> g_alienAllowBuilding(
 		Cvar::NONE,
 		true);
 
+// sudden death
+Cvar::Cvar<int> g_suddenDeathTime("g_SuddenDeathTime", "Enable Sudden Death? (configure with g_suddenDeathMode)", Cvar::NONE, false);
+Cvar::Cvar<int> g_suddenDeathMode("g_suddenDeathMode", "Sudden Death mode. After g_suddenDeathTime, either: 0) SD disabled. OR 1) allow arm, medi, boost & main building rebuild. OR 2) allow no rebuilding.", Cvar::NONE, 0);
+
 Cvar::Cvar<float> g_alienOffCreepRegenHalfLife("g_alienOffCreepRegenHalfLife", "half-life in seconds for decay of creep's healing bonus", Cvar::NONE, 0);
 
 Cvar::Cvar<bool> g_teamImbalanceWarnings("g_teamImbalanceWarnings", "send 'Teams are imbalanced' messages?", Cvar::NONE, true);
@@ -1229,6 +1233,113 @@ void CalculateRanks()
 	{
 		SendScoreboardMessageToAllClients();
 	}
+}
+
+/*
+========================================================================
+
+SUDDEN DEATH
+
+This is a basic, from-scratch reimplementation of Sudden Death,
+designed to behave similarly to that of Tremulous.
+
+g_SuddenDeathTime and g_SuddenDeathMode can be used to configure this.
+After g_SuddenDeathTime in minutes, SD will begin, limiting building.
+
+g_SuddenDeathMode
+0 - disabled
+1 - allow the armoury, medistation, booster, reactor and overmind
+    to be rebuilt only, & only one of each.
+2 - allow nothing to be rebuilt. complete and true sudden death.
+
+All checks will be contained within this block to allow minimal
+edits to other files, and to maintain readability.
+
+========================================================================
+*/
+
+int G_TimeTilSuddenDeath()
+{
+	int sdTime = g_suddenDeathTime.Get();
+	int sdMode = g_suddenDeathMode.Get();
+
+	if ( ( sdMode > 2 || sdMode < 0 ) || sdTime < 0 )
+	{
+		return -1; // SD is disabled or the cvar values are invalid.
+	}
+
+	if ( ( sdTime * 60000 ) - ( level.time - level.startTime ) < 1 )
+	{
+		return 0; // it's sudden death!
+	}
+
+	return ( sdTime * 60000 ) - ( level.time - level.startTime );
+}
+
+bool G_IsSuddenDeath()
+{
+	int sdTime = g_suddenDeathTime.Get();
+	int sdMode = g_suddenDeathMode.Get();
+
+	if ( G_TimeTilSuddenDeath() != 0 || sdMode == 0 || sdTime == 0 ) 
+	{
+		return false;
+	}
+
+	return true;
+}
+
+itemBuildError_t G_SuddenDeathBuildCheck( buildable_t buildable, bool build )
+{
+	struct buildable_status_t
+	{
+		int count;
+		bool marked = true; // will remain true if they are all marked
+	} structures[ BA_NUM_BUILDABLES ] = {};
+
+	if ( !G_IsSuddenDeath()              // if it's NOT SD or SD is disabled, stop here.
+		 || buildable == BA_H_REACTOR    // also stop here if the main buildable
+		 || buildable == BA_A_OVERMIND ) // is passed to this function.
+	{
+		return IBE_NONE;
+	}
+
+	if ( g_suddenDeathMode.Get() == 2 )
+	{
+		return IBE_SUDDENDEATH_2;
+	}
+
+	if ( !BG_Buildable( buildable )->availableAfterSD ) // ensure it can be rebuilt after SD
+	{
+		return IBE_SUDDENDEATH_1;
+	}
+
+	gentity_t *tmp = &g_entities[ 0 ];
+	for ( int i = 0; i < level.num_entities; i++, tmp++ ) 
+	{
+		if ( tmp->s.eType == entityType_t::ET_BUILDABLE ) 
+		{
+			int type = tmp->s.modelindex;
+			const BuildableComponent* BC = tmp->entity->Get<BuildableComponent>();
+			ASSERT( type < BA_NUM_BUILDABLES );
+			structures[ type ].count ++;
+			if ( !BC->MarkedForDeconstruction() )
+			{
+				structures[ type ].marked = false;
+			}
+		}
+	}
+
+	if ( structures[ BG_Buildable( buildable )->number ].count > 0 && build == false )
+	{
+		/*if ( structures[ BG_Buildable( buildable )->number ].marked == true )
+		{
+			return IBE_NONE; // rebuilding now will replace all existing of this type
+		}                    // this code is currently inoperable*/
+		return IBE_SUDDENDEATH_ONLYONE;
+	}
+
+	return IBE_NONE; // good to go
 }
 
 /*
