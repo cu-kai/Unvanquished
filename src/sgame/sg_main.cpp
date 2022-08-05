@@ -147,7 +147,7 @@ Cvar::Cvar<bool> g_alienAllowBuilding(
 		true);
 
 // sudden death
-Cvar::Cvar<int> g_suddenDeathTime("g_SuddenDeathTime", "Enable Sudden Death? (configure with g_suddenDeathMode)", Cvar::NONE, false);
+Cvar::Cvar<int> g_suddenDeathTime("g_SuddenDeathTime", "Sudden Death begins after this time (in minutes). 0 = disabled. (configure with g_suddenDeathMode)", Cvar::NONE, 0);
 Cvar::Cvar<int> g_suddenDeathMode("g_suddenDeathMode", "Sudden Death mode. After g_suddenDeathTime, either: 0) SD disabled. OR 1) allow arm, medi, boost & main building rebuild. OR 2) allow no rebuilding.", Cvar::NONE, 0);
 
 Cvar::Cvar<float> g_alienOffCreepRegenHalfLife("g_alienOffCreepRegenHalfLife", "half-life in seconds for decay of creep's healing bonus", Cvar::NONE, 0);
