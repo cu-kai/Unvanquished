@@ -1150,15 +1150,8 @@ bool G_CheckDeconProtectionAndWarn( gentity_t *buildable, gentity_t *player )
 
 	if ( G_SuddenDeathBuildCheck( (buildable_t) buildable->s.modelindex, true ) != IBE_NONE )
 	{
-		if ( g_suddenDeathMode.Get() == 1 )
-		{
-			G_TriggerMenu( player->client->ps.clientNum, MN_B_SUDDENDEATH_1 );
-		} 
-		else 
-		{
-			G_TriggerMenu( player->client->ps.clientNum, MN_B_SUDDENDEATH_2 );
-		}
-
+		G_TriggerMenu( player->client->ps.clientNum, 
+					   ( g_suddenDeathMode.Get() == 1 ? MN_B_SUDDENDEATH_1 : MN_B_SUDDENDEATH_2 ) );
 		return true;
 	}
 
@@ -1307,12 +1300,7 @@ static itemBuildError_t BuildableReplacementChecks( buildable_t oldBuildable, bu
 		 && ( !BG_Buildable( oldBuildable )->availableAfterSD 
 		 || !BG_Buildable( newBuildable )->availableAfterSD ) )
 	{
-		if ( g_suddenDeathMode.Get() == 1 )
-		{
-			return IBE_SUDDENDEATH_1;
-		}
-
-		return IBE_SUDDENDEATH_2;
+		return ( g_suddenDeathMode.Get() == 1 ? IBE_SUDDENDEATH_1 : IBE_SUDDENDEATH_2 );
 	}
 
 	// don't replace the main buildable with any other buildable
