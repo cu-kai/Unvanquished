@@ -2041,6 +2041,7 @@ static void Cmd_CallVote_f( gentity_t *ent )
 		{
 			trap_SendServerCommand( ent - g_entities,
 			                        va( "print_tr %s %s", QQ( N_("$1$: Sudden Death is disabled") ), cmd ) );
+			return;
 		}
 		Com_sprintf( level.team[ team ].voteString, sizeof( level.team[ team ].voteString ),
 		             "delaysd" );
