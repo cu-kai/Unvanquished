@@ -213,6 +213,8 @@ void              G_MapConfigs( Str::StringRef mapname, Str::StringRef layout );
 void              CalculateRanks();
 int               G_TimeTilSuddenDeath();
 bool              G_IsSuddenDeath();
+void              G_UpdateSuddenDeathTime( int newTime );
+void              G_SuddenDeathWarning();
 itemBuildError_t  G_SuddenDeathBuildCheck( buildable_t buildable, bool build );
 void              FindIntermissionPoint();
 void              G_RunThink( gentity_t *ent );

@@ -69,6 +69,7 @@ extern Cvar::Cvar<bool> g_allowVote;
 extern Cvar::Cvar<int> g_voteLimit;
 extern Cvar::Cvar<int> g_extendVotesPercent;
 extern Cvar::Cvar<int> g_extendVotesTime;
+extern Cvar::Cvar<int> g_suddenDeathExtendTime;
 extern Cvar::Cvar<int> g_kickVotesPercent;
 extern Cvar::Cvar<int> g_denyVotesPercent;
 extern Cvar::Cvar<int> g_mapVotesPercent;
@@ -105,7 +106,7 @@ extern Cvar::Cvar<bool> g_humanAllowBuilding;
 extern Cvar::Cvar<bool> g_alienAllowBuilding;
 
 extern Cvar::Cvar<int> g_suddenDeathMode;
-extern Cvar::Cvar<int> g_suddenDeathTime;
+extern Cvar::Callback<Cvar::Cvar<int>> g_suddenDeathTime;
 
 extern Cvar::Cvar<float> g_alienOffCreepRegenHalfLife;
 

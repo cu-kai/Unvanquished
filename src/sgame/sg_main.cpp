@@ -73,6 +73,7 @@ Cvar::Cvar<bool> g_allowVote("g_allowVote", "whether votes of any kind are allow
 Cvar::Cvar<int> g_voteLimit("g_voteLimit", "max votes per player per round", Cvar::NONE, 5);
 Cvar::Cvar<int> g_extendVotesPercent("g_extendVotesPercent", "percentage required for extend timelimit vote", Cvar::NONE, 74);
 Cvar::Cvar<int> g_extendVotesTime("g_extendVotesTime", "number of minutes 'extend' vote adds to timelimit", Cvar::NONE, 10);
+Cvar::Cvar<int> g_suddenDeathExtendTime("g_suddenDeathExtendTime", "number of minutes 'extend' vote adds to Sudden Death time", Cvar::NONE, 5);
 Cvar::Cvar<int> g_kickVotesPercent("g_kickVotesPercent", "percentage required for votes to remove players", Cvar::NONE, 51);
 Cvar::Cvar<int> g_denyVotesPercent("g_denyVotesPercent", "percentage required for votes to strip/reinstate a player's chat/build privileges", Cvar::NONE, 51);
 Cvar::Cvar<int> g_mapVotesPercent("g_mapVotesPercent", "percentage required for map changing votes", Cvar::NONE, 51);
@@ -147,7 +148,16 @@ Cvar::Cvar<bool> g_alienAllowBuilding(
 		true);
 
 // sudden death
-Cvar::Cvar<int> g_suddenDeathTime("g_SuddenDeathTime", "Sudden Death begins after this time (in minutes). 0 = disabled. (configure with g_suddenDeathMode)", Cvar::NONE, 0);
+Cvar::Callback<Cvar::Cvar<int>> g_suddenDeathTime(
+	"g_SuddenDeathTime", 
+	"Sudden Death begins after this time (in minutes). 0 = disabled. (configure with g_suddenDeathMode)", 
+	Cvar::NONE, 
+	0,
+	[](int) {
+		G_UpdateSuddenDeathTime( 0 );
+	});
+
+
 Cvar::Cvar<int> g_suddenDeathMode("g_suddenDeathMode", "Sudden Death mode. After g_suddenDeathTime, either: 0) SD disabled. OR 1) allow arm, medi, boost & main building rebuild. OR 2) allow no rebuilding.", Cvar::NONE, 0);
 
 Cvar::Cvar<float> g_alienOffCreepRegenHalfLife("g_alienOffCreepRegenHalfLife", "half-life in seconds for decay of creep's healing bonus", Cvar::NONE, 0);
@@ -636,6 +646,8 @@ void G_InitGame( int levelTime, int randomSeed, bool inClient )
 		ASSERT( G_IsPlayableTeam( i ) );
 		level.team[ i ].botFillTeamSize = g_bot_defaultFill.Get();
 	}
+	// update the Sudden Death time
+	G_UpdateSuddenDeathTime( g_suddenDeathTime.Get() * 60000 );
 }
 
 /*
@@ -1273,25 +1285,25 @@ edits to other files, and to maintain readability.
 
 int G_TimeTilSuddenDeath()
 {
-	int sdTime = g_suddenDeathTime.Get();
+	int sdTime = level.suddenDeathStartTime;
 	int sdMode = g_suddenDeathMode.Get();
 
-	if ( ( sdMode > 2 || sdMode < 0 ) || sdTime < 0 )
+	if ( ( sdMode > 2 || sdMode <= 0 ) || sdTime <= 0 )
 	{
 		return -1; // SD is disabled or the cvar values are invalid.
 	}
 
-	if ( ( sdTime * 60000 ) - ( level.time - level.startTime ) < 1 )
+	if ( ( sdTime ) - ( level.time - level.startTime ) < 1 )
 	{
 		return 0; // it's sudden death!
 	}
 
-	return ( sdTime * 60000 ) - ( level.time - level.startTime );
+	return ( sdTime ) - ( level.time - level.startTime );
 }
 
 bool G_IsSuddenDeath()
 {
-	int sdTime = g_suddenDeathTime.Get();
+	int sdTime = level.suddenDeathStartTime;
 	int sdMode = g_suddenDeathMode.Get();
 
 	if ( G_TimeTilSuddenDeath() != 0 || sdMode == 0 || sdTime == 0 ) 
@@ -1300,6 +1312,56 @@ bool G_IsSuddenDeath()
 	}
 
 	return true;
+}
+
+void G_UpdateSuddenDeathTime( int newTime )
+{
+	int t = newTime;
+
+	if ( newTime < 1 ) // if it's less than 1 it's probably not been set yet, or the cvar changed.
+	{
+		t = g_suddenDeathTime.Get() * 60000;
+	}
+
+	if ( level.suddenDeathStartTime > 0 ) // only tell people if it's changed after already being set
+	{
+		trap_SendServerCommand( -1, va( "cp \"^7Sudden Death now starts at ^3%02i:00\"", t / 60000 ) );
+		trap_SendServerCommand( -1, va( "print_tr %s %02i", QQ( N_("^7Sudden Death now starts at ^3$1$:00") ), t / 60000 ) );
+	}
+
+	level.suddenDeathStartTime = t;
+}
+
+void G_SuddenDeathWarning() // warn people SD is coming
+{
+	if ( G_TimeTilSuddenDeath() == -1 // SD is not enabled. stop here.
+		 || ( G_IsSuddenDeath() && level.suddenDeathWarning == TW_PASSED ) ) // SD has started and we've told everyone. nothing more to do.
+	{
+		return; 
+	}
+
+	if ( ( G_TimeTilSuddenDeath() > 60000 )
+		 && level.suddenDeathWarning >= TW_IMMINENT )
+	{
+		trap_SendServerCommand( -1, "cp \"^2Sudden Death has been rescinded!\"" );
+		trap_SendServerCommand( -1, va( "print_tr %s", QQ( N_("^2Sudden Death has been rescinded!") ) ) );
+		level.suddenDeathWarning = TW_NOT; // if SD has been delayed, reset the time warning.
+	}
+
+	if ( ( G_TimeTilSuddenDeath() <= 60000 )
+		 && level.suddenDeathWarning < TW_IMMINENT )
+	{
+		trap_SendServerCommand( -1, "cp \"^3Sudden Death is imminent!\"" );
+		trap_SendServerCommand( -1, va( "print_tr %s", QQ( N_("^3Sudden Death is imminent!") ) ) );
+		level.suddenDeathWarning = TW_IMMINENT;
+	}
+	else if ( G_IsSuddenDeath() && level.suddenDeathWarning < TW_PASSED )
+	{
+		trap_SendServerCommand( -1, "cp \"^1Sudden Death begins!\"" );
+		trap_SendServerCommand( -1, va( "print_tr %s", QQ( N_("^1Sudden Death begins!") ) ) );
+
+		level.suddenDeathWarning = TW_PASSED;
+	}
 }
 
 itemBuildError_t G_SuddenDeathBuildCheck( buildable_t buildable, bool build )
@@ -2608,6 +2670,9 @@ void G_RunFrame( int levelTime )
 
 	// Power down buildables if there is a budget deficit.
 	G_UpdateBuildablePowerStates();
+
+	// do we need to tell people Sudden Death is due soon?
+	G_SuddenDeathWarning();
 
 	G_DecreaseMomentum();
 	G_CalculateAvgPlayers();

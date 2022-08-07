@@ -1540,7 +1540,8 @@ enum {
 	VOTE_ALWAYS, // default
 	VOTE_BEFORE, // within the first N minutes
 	VOTE_AFTER,  // not within the first N minutes
-	VOTE_REMAIN, // within N/2 minutes before SD
+	VOTE_REMAIN, // within N/2 minutes before the time limit
+	VOTE_SD_NOTSOON, // not within N/2 minutse before Sudden Death
 	VOTE_NO_AUTO,// don't automatically vote 'yes'
 };
 static const struct {
@@ -1564,6 +1565,7 @@ static const struct {
 	{ "denybuild",       true,  V_TEAM,   T_PLAYER,  true,   true,     qtrinary::qyes,   &g_denyVotesPercent, VOTE_ALWAYS, nullptr, nullptr },
 	{ "allowbuild",      true,  V_TEAM,   T_PLAYER,  false,  true,     qtrinary::qno,    &g_denyVotesPercent, VOTE_ALWAYS, nullptr, nullptr },
 	{ "extend",          true,  V_PUBLIC, T_OTHER,   false,  false,    qtrinary::qno,    &g_extendVotesPercent,      VOTE_REMAIN, &g_extendVotesTime, nullptr },
+	{ "delaysd",      true,  V_PUBLIC, T_NONE,    false,  false,    qtrinary::qno,    &g_extendVotesPercent,      VOTE_SD_NOTSOON, &g_suddenDeathExtendTime, nullptr },
 	{ "admitdefeat",     true,  V_TEAM,   T_NONE,    false,  true,     qtrinary::qno,    &g_admitDefeatVotesPercent, VOTE_ALWAYS, nullptr, nullptr },
 	{ "draw",            true,  V_PUBLIC, T_NONE,    true,   true,     qtrinary::qyes,   &g_drawVotesPercent,        VOTE_AFTER,  &g_drawVotesAfter,  &g_drawVoteReasonRequired },
 	{ "map_restart",     true,  V_PUBLIC, T_NONE,    false,  true,     qtrinary::qno,    &g_mapVotesPercent, VOTE_ALWAYS, nullptr, nullptr },
@@ -1768,6 +1770,18 @@ static void Cmd_CallVote_f( gentity_t *ent )
 		{
 			trap_SendServerCommand( ent - g_entities,
 			                        va( "print_tr %s %s %d", QQ( N_("'$1$' votes are only allowed with less than $2$ minutes remaining") ),
+			                            voteInfo[voteId].name, voteInfo[voteId].specialCvar->Get() / 2 ) );
+			return;
+		}
+
+		break;
+
+	case VOTE_SD_NOTSOON:
+		if ( ( G_TimeTilSuddenDeath() >= ( ( voteInfo[voteId].specialCvar->Get() * 60000 / 2 ) ) )
+			 || G_IsSuddenDeath() ) // SD cannot be extended once started.
+		{
+			trap_SendServerCommand( ent - g_entities,
+			                        va( "print_tr %s %s %d", QQ( N_("'$1$' votes are only allowed with less than $2$ minutes before it is due") ),
 			                            voteInfo[voteId].name, voteInfo[voteId].specialCvar->Get() / 2 ) );
 			return;
 		}
@@ -2011,6 +2025,18 @@ static void Cmd_CallVote_f( gentity_t *ent )
 		             "time %i", level.timelimit + g_extendVotesTime.Get() );
 		Com_sprintf( level.team[ team ].voteDisplayString, sizeof( level.team[ team ].voteDisplayString ),
 		             "Extend the timelimit by %d minutes", g_extendVotesTime.Get() );
+		break;
+
+	case VOTE_DELAYSD:
+		if ( G_TimeTilSuddenDeath() == -1 )
+		{
+			trap_SendServerCommand( ent - g_entities,
+			                        va( "print_tr %s %s", QQ( N_("$1$: Sudden Death is disabled") ), cmd ) );
+		}
+		Com_sprintf( level.team[ team ].voteString, sizeof( level.team[ team ].voteString ),
+		             "delaysd" );
+		Com_sprintf( level.team[ team ].voteDisplayString, sizeof( level.team[ team ].voteDisplayString ),
+		             "Delay Sudden Death by %d minutes", g_suddenDeathExtendTime.Get() );
 		break;
 
 	case VOTE_ADMIT_DEFEAT:
