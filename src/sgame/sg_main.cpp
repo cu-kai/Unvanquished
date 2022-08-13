@@ -637,11 +637,6 @@ void G_InitGame( int levelTime, int randomSeed, bool inClient )
 	// Initialize build point counts for the intial layout.
 	G_UpdateBuildPointBudgets();
 
-	for ( int i = TEAM_NONE + 1; i < NUM_TEAMS; ++i )
-	{
-		ASSERT( G_IsPlayableTeam( i ) );
-		level.team[ i ].botFillTeamSize = g_bot_defaultFill.Get();
-	}
 	// update the Sudden Death time
 	G_UpdateSuddenDeathTime( g_suddenDeathTime.Get() * 60000 );
 }
