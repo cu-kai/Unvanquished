@@ -1190,7 +1190,7 @@ void G_DeconstructUnprotected( gentity_t *buildable, gentity_t *ent )
 
 		// Add to build timer.
 		ent->client->ps.stats[ STAT_MISC ] += BG_Buildable( buildable->s.modelindex )->buildTime / 4;
-	}	
+	}
 
 	G_Deconstruct( buildable, ent, MOD_DECONSTRUCT );
 }
@@ -2065,12 +2065,12 @@ static gentity_t *SpawnBuildable( gentity_t *builder, buildable_t buildable, con
 		G_TeamCommand( (team_t) builder->client->pers.team,
 		               va( "print_tr %s %s %s %s", ( readable[ 0 ] ) ?
 						QQ( N_("$1$ ^2built^* by $2$^*, ^3replacing^* $3$") ) :
-						QQ( N_("$1$ ^2built^* by $2$$3$\n") ),
+						QQ( N_("$1$ ^2built^* by $2$$3$") ),
 		                   Quote( BG_Buildable( built->s.modelindex )->humanName ),
 		                   Quote( builder->client->pers.netname ),
 		                   Quote( readable ) ) );
 		G_LogPrintf( "Construct: %d %d %s%s: %s^* is building "
-		             "%s%s%s\n",
+		             "%s%s%s",
 		             ( int )( builder - g_entities ),
 		             ( int )( built - g_entities ),
 		             BG_Buildable( built->s.modelindex )->name,
@@ -2675,7 +2675,7 @@ static void G_BuildLogRevertThink( gentity_t *ent )
 	built->momentumEarned = ent->momentumEarned;
 	G_KillBox( built );
 
-	G_LogPrintf( "revert: restore %d %s\n",
+	G_LogPrintf( "revert: restore %d %s",
 	             ( int )( built - g_entities ), BG_Buildable( built->s.modelindex )->name );
 
 	G_FreeEntity( ent );
@@ -2714,7 +2714,7 @@ void G_BuildLogRevert( int id )
 					{
 						if ( ent->s.eType == entityType_t::ET_BUILDABLE )
 						{
-							G_LogPrintf( "revert: remove %d %s\n",
+							G_LogPrintf( "revert: remove %d %s",
 										 ( int )( ent - g_entities ), BG_Buildable( ent->s.modelindex )->name );
 						}
 
