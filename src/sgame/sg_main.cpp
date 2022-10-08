@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "sg_local.h"
 #include "shared/parse.h"
+#include "sg_entities_iterator.h"
 #include "Entities.h"
 #include "CBSE.h"
 #include "backend/CBSEBackend.h"
@@ -224,6 +225,7 @@ Cvar::Cvar<int> g_combatCooldown("g_combatCooldown", "team change disallowed unt
 Cvar::Range<Cvar::Cvar<int>> g_debugEntities("g_debugEntities", "entity debug level", Cvar::NONE, 0, -2, 3);
 
 Cvar::Cvar<bool> g_instantBuilding("g_instantBuilding", "cheat mode for building", Cvar::NONE, false);
+Cvar::Cvar<bool> g_ignoreNobuild("g_ignoreNobuild", "ignore nobuild area", Cvar::NONE, false);
 
 Cvar::Cvar<int> g_emptyTeamsSkipMapTime("g_emptyTeamsSkipMapTime", "end game over x minutes if no real players", Cvar::NONE, 0);
 
@@ -1720,33 +1722,15 @@ Calculates the average amount of spare credits as well as the value of each team
 */
 static void GetAverageCredits( int teamCredits[], int teamValue[] )
 {
-	int       teamCnt[ NUM_TEAMS ];
-	int       playerNum;
-	gentity_t *playerEnt;
-	gclient_t *client;
+	int       teamCnt[ NUM_TEAMS ] = {};
 	int       team;
 
-	for ( team = TEAM_ALIENS ; team < NUM_TEAMS ; ++team)
+	for ( gentity_t *player : iterate_client_entities )
 	{
-		teamCnt[ team ] = 0;
-		teamCredits[ team ] = 0;
-		teamValue[ team ] = 0;
-	}
+		team = G_Team( player );
 
-	for ( playerNum = 0; playerNum < MAX_CLIENTS; playerNum++ )
-	{
-		playerEnt = &g_entities[ playerNum ];
-		client = playerEnt->client;
-
-		if ( !client )
-		{
-			continue;
-		}
-
-		team = client->pers.team;
-
-		teamCredits[ team ] += client->pers.credit;
-		teamValue[ team ] += BG_GetPlayerValue( client->ps );
+		teamCredits[ team ] += player->client->pers.credit;
+		teamValue[ team ] += BG_GetPlayerValue( player->client->ps );
 		teamCnt[ team ]++;
 	}
 
@@ -2480,7 +2464,6 @@ Advances the non-player objects in the world
 void G_RunFrame( int levelTime )
 {
 	int        i;
-	gentity_t  *ent;
 	int        msec;
 	static int ptime3000 = 0;
 
@@ -2558,7 +2541,7 @@ void G_RunFrame( int levelTime )
 	G_CheckPmoveParamChanges();
 
 	// go through all allocated objects
-	ent = &g_entities[ 0 ];
+	gentity_t *ent = &g_entities[ 0 ];
 	for ( i = 0; i < level.num_entities; i++, ent++ )
 	{
 		if ( !ent->inuse ) continue;
@@ -2652,14 +2635,9 @@ void G_RunFrame( int levelTime )
 	});
 
 	// perform final fixups on the players
-	ent = &g_entities[ 0 ];
-
-	for ( i = 0; i < level.maxclients; i++, ent++ )
+	for ( gentity_t *ent : iterate_client_entities )
 	{
-		if ( ent->inuse )
-		{
-			ClientEndFrame( ent );
-		}
+		ClientEndFrame( ent );
 	}
 
 	// save position information for all active clients

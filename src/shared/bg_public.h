@@ -475,7 +475,7 @@ enum persEnum_t
 #define EF_FIRING2          0x0400 // alt fire
 #define EF_FIRING3          0x0800 // third fire
 #define EF_MOVER_STOP       0x1000 // will push otherwise
-#define EF_UNUSED_2         0x2000 // UNUSED
+#define EF_TYPING           0x2000 // client is typing
 #define EF_CONNECTION       0x4000 // draw a connection trouble sprite
 #define EF_BLOBLOCKED       0x8000 // caught by a trapper
 
@@ -491,6 +491,9 @@ enum persEnum_t
 
 #define EF_BC_TAG_RELEVANT  (EF_BC_ENEMY|EF_BC_TAG_PLAYER)   // relevant flags for tags
 #define EF_BC_BASE_RELEVANT (EF_BC_ENEMY|EF_BC_BASE_OUTPOST) // relevant flags for bases
+
+// For usercmd_t flags
+#define UF_TYPING           BIT(0) // player is typing
 
 enum weaponMode_t
 {
@@ -1698,8 +1701,8 @@ void     BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_
 #define MAX_ARENAS      1024
 #define MAX_ARENAS_TEXT 8192
 
-float    atof_neg( char *token, bool allowNegative );
-int      atoi_neg( char *token, bool allowNegative );
+float    atof_neg( const char *token, bool allowNegative );
+int      atoi_neg( const char *token, bool allowNegative );
 
 BoundedVector<buildable_t, BA_NUM_BUILDABLES>
 		BG_ParseBuildableList( const std::string& );

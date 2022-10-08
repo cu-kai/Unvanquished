@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "sg_bot_parse.h"
 #include "sg_bot_util.h"
+#include "sg_entities_iterator.h"
 #include "Entities.h"
 
 static botMemory_t g_botMind[MAX_CLIENTS];
@@ -187,7 +188,7 @@ const char * G_BotGetBehavior( int clientNum )
 	return bot->botMind->behaviorTree->name;
 }
 
-void G_BotChangeBehavior( int clientNum, const char* behavior )
+void G_BotChangeBehavior( int clientNum, Str::StringRef behavior )
 {
 	gentity_t *bot = &g_entities[clientNum];
 
@@ -200,14 +201,14 @@ void G_BotChangeBehavior( int clientNum, const char* behavior )
 	G_BotSetBehavior( bot->botMind, behavior );
 }
 
-bool G_BotSetBehavior( botMemory_t *botMind, const char* behavior )
+bool G_BotSetBehavior( botMemory_t *botMind, Str::StringRef behavior )
 {
 	botMind->runningNodes.clear();
 	botMind->currentNode = nullptr;
 	botMind->clearNav();
 	BotResetEnemyQueue( &botMind->enemyQueue );
 
-	botMind->behaviorTree = ReadBehaviorTree( behavior, &treeList );
+	botMind->behaviorTree = ReadBehaviorTree( behavior.c_str(), &treeList );
 
 	if ( !botMind->behaviorTree )
 	{
@@ -223,7 +224,7 @@ bool G_BotSetBehavior( botMemory_t *botMind, const char* behavior )
 	return true;
 }
 
-bool G_BotSetDefaults( int clientNum, team_t team, int skill, const char* behavior )
+bool G_BotSetDefaults( int clientNum, team_t team, int skill, Str::StringRef behavior )
 {
 	botMemory_t *botMind;
 	gentity_t *self = &g_entities[ clientNum ];
@@ -360,12 +361,9 @@ void G_BotDel( int clientNum )
 
 void G_BotDelAllBots()
 {
-	for ( int i = 0; i < MAX_CLIENTS; i++ )
+	for ( gentity_t *bot : iterate_bot_entities )
 	{
-		if ( g_entities[i].r.svFlags & SVF_BOT && level.clients[i].pers.connected != CON_DISCONNECTED )
-		{
-			G_BotDel( i );
-		}
+		G_BotDel( bot - g_entities );
 	}
 
 	for ( auto &teamsBotNames : botNames )
@@ -565,12 +563,9 @@ bool G_BotInit()
 
 void G_BotCleanup()
 {
-	for ( int i = 0; i < MAX_CLIENTS; ++i )
+	for ( gentity_t *bot : iterate_bot_entities )
 	{
-		if ( g_entities[i].r.svFlags & SVF_BOT && level.clients[i].pers.connected != CON_DISCONNECTED )
-		{
-			G_BotDel( i );
-		}
+		G_BotDel( bot - g_entities );
 	}
 
 	G_BotClearNames();

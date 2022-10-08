@@ -1001,7 +1001,7 @@ void G_admin_writeconfig()
 
 static void admin_readconfig_string( const char **cnf, char *s, unsigned size )
 {
-	char *t;
+	const char *t;
 
 	//COM_MatchToken(cnf, "=");
 	s[ 0 ] = '\0';
@@ -1038,10 +1038,8 @@ static void admin_readconfig_string( const char **cnf, char *s, unsigned size )
 
 static void admin_readconfig_int( const char **cnf, int *v )
 {
-	char *t;
-
 	//COM_MatchToken(cnf, "=");
-	t = COM_ParseExt( cnf, false );
+	const char *t = COM_ParseExt( cnf, false );
 
 	if ( !strcmp( t, "=" ) )
 	{
@@ -1895,7 +1893,6 @@ bool G_admin_readconfig( gentity_t *ent )
 	fileHandle_t      f;
 	int               len;
 	char              *cnf1, *cnf2;
-	char              *t;
 	bool              level_open, admin_open, ban_open, command_open;
 	int               i;
 	char              ip[ 44 ];
@@ -1933,7 +1930,7 @@ bool G_admin_readconfig( gentity_t *ent )
 
 	while ( 1 )
 	{
-		t = COM_Parse( &cnf );
+		const char *t = COM_Parse( &cnf );
 
 		if ( !*t )
 		{
@@ -2409,7 +2406,7 @@ bool G_admin_slap( gentity_t *ent )
 	{
 		ADMP( va( "%s %s", QQ( N_( "^3$1$:^* sorry, but your intended victim has a higher admin"
 		          " level than you" ) ), "slap" ) ); // todo: move this print to a single helper function
-		return false; 
+		return false;
 	}
 
 	const HealthComponent* health = vic->entity->Get<HealthComponent>();
@@ -2463,13 +2460,13 @@ bool G_admin_slap( gentity_t *ent )
 
 	if ( health->Alive() )
 	{
-		AP( va( "print_tr " QQ( N_( "^3slap:^* $1$^* slapped $2$ ^*$3$" ) ) " %s %s %s", 
-			 G_quoted_admin_name( ent ), Quote( vic->client->pers.netname ), 
+		AP( va( "print_tr " QQ( N_( "^3slap:^* $1$^* slapped $2$ ^*$3$" ) ) " %s %s %s",
+			 G_quoted_admin_name( ent ), Quote( vic->client->pers.netname ),
 			 ( damage > 0 ? Quote( va( "with %.0f damage", damage ) ) : QQ( "" ) ) ) );
 	} // only print the chat msg if they don't die. otherwise the MOD_SLAP event will suffice.
 
-	CPx( vic - g_entities, va( "cp_tr " QQ( N_( "[cross]$1$$2$ is not amused![cross]" ) ) " %s %s", 
-		G_quoted_admin_name( ent ), 
+	CPx( vic - g_entities, va( "cp_tr " QQ( N_( "[cross]$1$$2$ is not amused![cross]" ) ) " %s %s",
+		G_quoted_admin_name( ent ),
 		( health->Alive() ) ? "^7" : "^i" ) ); // if they die, make the text red
 
 	return true;
@@ -5632,12 +5629,33 @@ void G_admin_print_plural( gentity_t *ent, Str::StringRef m, int number )
 
 /*
 ================
+ G_admin_print_raw
+
+This function is used to print raw/untranslated things to the clients.
+
+ The supplied string is assumed to be quoted as needed.
+================
+*/
+void G_admin_print_raw( gentity_t *ent, Str::StringRef m )
+{
+	if ( ent )
+	{
+		trap_SendServerCommand( ent->s.number, va( "print %s", m.c_str() ) );
+	}
+	else
+	{
+		trap_SendServerCommand( -2, va( "print %s", m.c_str() ) );
+	}
+}
+
+
+/*
+================
  G_admin_buffer_begin, G_admin_buffer_print, G_admin_buffer_end,
 
  These function facilitates the ADMBP* defines, and output is as for ADMP().
 
  The supplied text is raw; it will be quoted but not marked translatable.
- FIXME: it actually is marked translatable (print_tr is used) but shouldn't be
 ================
 */
 void G_admin_buffer_begin()
@@ -5648,7 +5666,7 @@ void G_admin_buffer_begin()
 
 void G_admin_buffer_end( gentity_t *ent )
 {
-	G_admin_print( ent, G_EscapeServerCommandArg( g_bfb ) );
+	G_admin_print_raw( ent, G_EscapeServerCommandArg( g_bfb ) );
 }
 
 static inline void G_admin_buffer_print_raw( gentity_t *ent, Str::StringRef m, bool appendNewLine )

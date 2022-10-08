@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "sg_local.h"
+#include "sg_entities_iterator.h"
 #include "engine/qcommon/q_unicode.h"
 #include "botlib/bot_api.h"
 #include <common/FileSystem.h>
@@ -631,8 +632,8 @@ static void Cmd_Give_f( gentity_t *ent )
 		if ( fabsf(amount) >= 1.0f )
 		{
 			valid = true;
+			G_AddCreditToClient( ent->client, ( short ) amount, true );
 		}
-		G_AddCreditToClient( ent->client, ( short ) amount, true );
 	}
 
 	// give momentum
@@ -652,13 +653,13 @@ static void Cmd_Give_f( gentity_t *ent )
 		{
 			++end;
 			team = BG_PlayableTeamFromString( end );
-			if ( team != TEAM_NONE )
+			if ( team == TEAM_NONE )
 			{
 				team = G_Team( ent );
 			}
 		}
 
-		if ( team != TEAM_NONE && amount >= 0.1f )
+		if ( team != TEAM_NONE && fabsf(amount) >= 0.1f )
 		{
 			valid = true;
 			G_AddMomentumGeneric( team, amount );
@@ -672,10 +673,10 @@ static void Cmd_Give_f( gentity_t *ent )
 		if ( fabsf(amount) >= 1.0f )
 		{
 			valid = true;
-		}
 
-		level.team[ent->client->pers.team].totalBudget +=
-			static_cast<int>( amount );
+			level.team[ent->client->pers.team].totalBudget +=
+				static_cast<int>( amount );
+		}
 	}
 
 	if ( Entities::IsDead( ent ) || ent->client->sess.spectatorState != SPECTATOR_NOT )
@@ -688,25 +689,25 @@ static void Cmd_Give_f( gentity_t *ent )
 	{
 		if ( give_all || trap_Argc() < 3 )
 		{
+			valid = true;
 			ent->entity->Heal(1000.0f, nullptr);
 			BG_AddUpgradeToInventory( UP_MEDKIT, ent->client->ps.stats );
 		}
 		else
 		{
 			amount = atof( name + strlen("health") );
-			if (amount < 0)
+			if ( fabsf(amount) >= 1.0f )
 			{
-				ent->entity->Damage(-amount, nullptr, Util::nullopt, Util::nullopt, 0, MOD_LAVA);
+				valid = true;
+				if (amount < 0)
+				{
+					ent->entity->Damage(-amount, nullptr, Util::nullopt, Util::nullopt, 0, MOD_LAVA);
+				}
+				else
+				{
+					ent->entity->Heal(amount, nullptr);
+				}
 			}
-			else
-			{
-				ent->entity->Heal(amount, nullptr);
-			}
-		}
-
-		if ( fabsf(amount) >= 1.0f )
-		{
-			valid = true;
 		}
 	}
 
@@ -741,7 +742,7 @@ static void Cmd_Give_f( gentity_t *ent )
 	if ( team != TEAM_NONE && ( give_all || Q_stricmp( name, "ammo" ) == 0 ) )
 	{
 		valid = true;
-		G_RefillAmmo( ent, false );
+		G_GiveMaxAmmo( ent );
 	}
 
 	if ( !valid )
@@ -939,12 +940,19 @@ static void Cmd_Team_f( gentity_t *ent )
 		{
 			team = TEAM_NONE;
 		}
-		else if ( level.team[ TEAM_HUMANS ].locked || players[ TEAM_HUMANS ] > players[ TEAM_ALIENS ] )
+		else if ( level.team[ TEAM_HUMANS ].locked )
 		{
 			team = TEAM_ALIENS;
 		}
-
-		else if ( level.team[ TEAM_ALIENS ].locked || players[ TEAM_ALIENS ] > players[ TEAM_HUMANS ] )
+		else if ( level.team[ TEAM_ALIENS ].locked )
+		{
+			team = TEAM_HUMANS;
+		}
+		else if ( players[ TEAM_HUMANS ] > players[ TEAM_ALIENS ] )
+		{
+			team = TEAM_ALIENS;
+		}
+		else if ( players[ TEAM_ALIENS ] > players[ TEAM_HUMANS ] )
 		{
 			team = TEAM_HUMANS;
 		}
@@ -1643,7 +1651,6 @@ static void Cmd_CallVote_f( gentity_t *ent )
 	int    id = -1;
 	int    voteId;
 	team_t team;
-	int    i;
 
 	trap_Argv( 0, cmd, sizeof( cmd ) );
 	team = (team_t) ( ( !Q_stricmp( cmd, "callteamvote" ) ) ? ent->client->pers.team : TEAM_NONE );
@@ -1894,16 +1901,17 @@ static void Cmd_CallVote_f( gentity_t *ent )
 		break;
 
 	case VOTE_BOT_KICK:
-		for ( i = 0; i < MAX_CLIENTS; ++i )
+	{
+		bool bot_playing = false;
+		for ( const gentity_t *bot : iterate_bot_entities )
 		{
-			if ( g_entities[i].r.svFlags & SVF_BOT &&
-			     g_entities[i].client->pers.team != TEAM_NONE )
+			if ( G_Team(bot) != TEAM_NONE )
 			{
-				break;
+				bot_playing = true;
 			}
 		}
 
-		if ( i == MAX_CLIENTS )
+		if ( !bot_playing )
 		{
 			trap_SendServerCommand( ent - g_entities,
 			                        va( "print_tr %s %s", QQ( N_("$1$: there are no active bots") ), cmd ) );
@@ -1914,6 +1922,7 @@ static void Cmd_CallVote_f( gentity_t *ent )
 		Com_sprintf( level.team[ team ].voteDisplayString, sizeof( level.team[ team ].voteDisplayString ), N_("Remove all bots") );
 
 		break;
+	}
 
 	case VOTE_BOT_FILL:
 		{

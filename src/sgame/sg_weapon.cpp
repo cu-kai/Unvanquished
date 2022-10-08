@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // perform the server side effects of a weapon firing
 
 #include "sg_local.h"
+#include "sg_entities_iterator.h"
 #include "Entities.h"
 #include "CBSE.h"
 
@@ -70,6 +71,8 @@ static void GiveMaxClips( gentity_t *self )
 		return;
 	}
 
+	self->client->lastAmmoRefillTime = level.time;
+
 	ps = &self->client->ps;
 	wa = BG_Weapon( ps->stats[ STAT_WEAPON ] );
 
@@ -88,6 +91,8 @@ static void GiveFullClip( gentity_t *self )
 	{
 		return;
 	}
+
+	self->client->lastAmmoRefillTime = level.time;
 
 	ps = &self->client->ps;
 	wa = BG_Weapon( ps->stats[ STAT_WEAPON ] );
@@ -153,8 +158,6 @@ bool G_RefillAmmo( gentity_t *self, bool triggerEvent )
 	{
 		return false;
 	}
-
-	self->client->lastAmmoRefillTime = level.time;
 
 	if ( BG_Weapon( self->client->ps.stats[ STAT_WEAPON ] )->maxClips > 0 )
 	{
@@ -630,9 +633,7 @@ static void HiveMissileThink( gentity_t *self )
 {
 	vec3_t    dir;
 	trace_t   tr;
-	gentity_t *ent;
-	int       i;
-	float     d, nearest;
+	float     d;
 
 	if ( level.time > self->timestamp ) // swarm lifetime exceeded
 	{
@@ -646,17 +647,14 @@ static void HiveMissileThink( gentity_t *self )
 		return;
 	}
 
-	nearest = DistanceSquared( self->r.currentOrigin, self->target->r.currentOrigin );
+	float nearest = DistanceSquared( self->r.currentOrigin, self->target->r.currentOrigin );
 
 	//find the closest human
-	for ( i = 0; i < MAX_CLIENTS; i++ )
+	for ( gentity_t *ent : iterate_client_entities )
 	{
-		ent = &g_entities[ i ];
-
-		if ( !ent->inuse ) continue;
 		if ( ent->flags & FL_NOTARGET ) continue;
 
-		if ( ent->client && Entities::IsAlive( ent ) && G_Team( ent ) == TEAM_HUMANS &&
+		if ( Entities::IsAlive( ent ) && G_Team( ent ) == TEAM_HUMANS &&
 		     nearest > ( d = DistanceSquared( ent->r.currentOrigin, self->r.currentOrigin ) ) )
 		{
 			trap_Trace( &tr, self->r.currentOrigin, self->r.mins, self->r.maxs,
@@ -1199,7 +1197,7 @@ static void CreateNewZap( gentity_t *creator, gentity_t *target )
 				float damage = LEVEL2_AREAZAP_DMG * ( 1 - powf( ( zap->distances[ i ] /
 				               LEVEL2_AREAZAP_CHAIN_RANGE ), LEVEL2_AREAZAP_CHAIN_FALLOFF ) ) + 1;
 
-				target->entity->Damage(damage, zap->creator, VEC2GLM( target->s.origin ),
+				zap->targets[i]->entity->Damage(damage, zap->creator, VEC2GLM( zap->targets[i]->s.origin ),
 				                       VEC2GLM( forward ), DAMAGE_NO_LOCDAMAGE, MOD_LEVEL2_ZAP);
 			}
 		}

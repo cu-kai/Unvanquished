@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "sg_bot_ai.h"
 #include "sg_bot_util.h"
 #include "botlib/bot_api.h"
+#include "sg_entities_iterator.h"
 #include "CBSE.h"
 #include "shared/bg_local.h" // MIN_WALK_NORMAL
 #include "Entities.h"
@@ -680,17 +681,10 @@ gentity_t* BotFindBuilding( gentity_t *self, int buildingType, int range )
 	gentity_t* closestBuilding = nullptr;
 	float newDistance;
 	float rangeSquared = Square( range );
-	gentity_t *target = &g_entities[MAX_CLIENTS];
-	int i;
 
-	for ( i = MAX_CLIENTS; i < level.num_entities; i++, target++ )
+	for ( gentity_t *target : iterate_buildable_entities )
 	{
-		if ( !target->inuse )
-		{
-			continue;
-		}
-		if ( target->s.eType == entityType_t::ET_BUILDABLE &&
-		     target->s.modelindex == buildingType &&
+		if ( target->s.modelindex == buildingType &&
 		     target->powered && target->spawned &&
 		     Entities::IsAlive( target ) )
 		{
@@ -711,9 +705,6 @@ gentity_t* BotFindBuilding( gentity_t *self, int buildingType, int range )
 
 void BotFindClosestBuildings( gentity_t *self )
 {
-	gentity_t *testEnt;
-	botEntityAndDistance_t *ent;
-
 	// clear out building list
 	for ( unsigned i = 0; i < ARRAY_LEN( self->botMind->closestBuildings ); i++ )
 	{
@@ -721,21 +712,8 @@ void BotFindClosestBuildings( gentity_t *self )
 		self->botMind->closestBuildings[ i ].distance = std::numeric_limits<float>::max();
 	}
 
-	for ( testEnt = &g_entities[MAX_CLIENTS]; testEnt < &g_entities[level.num_entities - 1]; testEnt++ )
+	for ( gentity_t *testEnt : iterate_buildable_entities )
 	{
-		float newDist;
-		// ignore entities that aren't in use
-		if ( !testEnt->inuse )
-		{
-			continue;
-		}
-
-		// skip non buildings
-		if ( testEnt->s.eType != entityType_t::ET_BUILDABLE )
-		{
-			continue;
-		}
-
 		// ignore dead targets
 		if ( Entities::IsDead( testEnt ) )
 		{
@@ -748,9 +726,9 @@ void BotFindClosestBuildings( gentity_t *self )
 			continue;
 		}
 
-		newDist = Distance( self->s.origin, testEnt->s.origin );
+		float newDist = Distance( self->s.origin, testEnt->s.origin );
 
-		ent = &self->botMind->closestBuildings[ testEnt->s.modelindex ];
+		botEntityAndDistance_t *ent = &self->botMind->closestBuildings[ testEnt->s.modelindex ];
 
 		if ( newDist < ent->distance )
 		{
@@ -764,26 +742,13 @@ void BotFindDamagedFriendlyStructure( gentity_t *self )
 {
 	float minDistSqr;
 
-	gentity_t *target;
 	self->botMind->closestDamagedBuilding.ent = nullptr;
 	self->botMind->closestDamagedBuilding.distance = std::numeric_limits<float>::max();
 
 	minDistSqr = Square( self->botMind->closestDamagedBuilding.distance );
 
-	for ( target = &g_entities[MAX_CLIENTS]; target < &g_entities[level.num_entities]; target++ )
+	for ( gentity_t *target : iterate_buildable_entities )
 	{
-		float distSqr;
-
-		if ( !target->inuse )
-		{
-			continue;
-		}
-
-		if ( target->s.eType != entityType_t::ET_BUILDABLE )
-		{
-			continue;
-		}
-
 		if ( target->buildableTeam != self->client->pers.team )
 		{
 			continue;
@@ -804,7 +769,7 @@ void BotFindDamagedFriendlyStructure( gentity_t *self )
 			continue;
 		}
 
-		distSqr = DistanceSquared( self->s.origin, target->s.origin );
+		float distSqr = DistanceSquared( self->s.origin, target->s.origin );
 		if ( distSqr < minDistSqr )
 		{
 			self->botMind->closestDamagedBuilding.ent = target;
@@ -838,12 +803,11 @@ gentity_t* BotFindBestEnemy( gentity_t *self )
 	float bestInvisibleEnemyScore = 0.0f;
 	gentity_t *bestVisibleEnemy = nullptr;
 	gentity_t *bestInvisibleEnemy = nullptr;
-	gentity_t *target;
 	team_t    team = G_Team( self );
 	bool  hasRadar = ( team == TEAM_ALIENS ) ||
 	                     ( team == TEAM_HUMANS && BG_InventoryContainsUpgrade( UP_RADAR, self->client->ps.stats ) );
 
-	for ( target = g_entities; target < &g_entities[level.num_entities - 1]; target++ )
+	for ( gentity_t *target : iterate_entities )
 	{
 		float newScore;
 
@@ -897,16 +861,10 @@ gentity_t* BotFindClosestEnemy( gentity_t *self )
 {
 	gentity_t* closestEnemy = nullptr;
 	float minDistance = Square( ALIENSENSE_RANGE );
-	gentity_t *target;
 
-	for ( target = g_entities; target < &g_entities[level.num_entities - 1]; target++ )
+	for ( gentity_t *target : iterate_entities )
 	{
 		float newDistance;
-		//ignore entities that arnt in use
-		if ( !target->inuse )
-		{
-			continue;
-		}
 
 		if ( !BotEntityIsValidEnemyTarget( self, target ) )
 		{
@@ -1370,7 +1328,7 @@ glm::vec3 BotGetIdealAimLocation( gentity_t *self, const botTarget_t &target )
 		aimLocation[2] += targetEnt->r.maxs[2] * 0.85;
 
 	}
-	else if ( isTargetBuildable || targetTeam == TEAM_ALIENS )
+	else
 	{
 		//make lucifer cannons (& other slow human weapons, maybe aliens would need it, too?) aim ahead based on the target's velocity
 		if ( self->botMind->botSkill.level >= 5 )
@@ -1530,26 +1488,6 @@ Bot Team Querys
 ========================
 */
 
-int FindBots( int *botEntityNumbers, int maxBots, team_t team )
-{
-	gentity_t *testEntity;
-	int numBots = 0;
-	int i;
-	memset( botEntityNumbers, 0, sizeof( int )*maxBots );
-	for ( i = 0; i < MAX_CLIENTS; i++ )
-	{
-		testEntity = &g_entities[i];
-		if ( testEntity->r.svFlags & SVF_BOT )
-		{
-			if ( testEntity->client->pers.team == team && numBots < maxBots )
-			{
-				botEntityNumbers[numBots++] = i;
-			}
-		}
-	}
-	return numBots;
-}
-
 bool PlayersBehindBotInSpawnQueue( gentity_t *self )
 {
 	//this function only checks if there are Humans in the SpawnQueue
@@ -1648,21 +1586,17 @@ static void ListTeamEquipment( gentity_t *self, unsigned int (&numUpgrades)[UP_N
 
 bool BotTeamateHasWeapon( gentity_t *self, int weapon )
 {
-	int botNumbers[MAX_CLIENTS];
-	int i;
-	int numBots = FindBots( botNumbers, MAX_CLIENTS, ( team_t ) self->client->pers.team );
-
-	for ( i = 0; i < numBots; i++ )
+	for ( const gentity_t *bot : iterate_bot_entities )
 	{
-		gentity_t *bot = &g_entities[botNumbers[i]];
 		if ( bot == self )
-		{
 			continue;
-		}
-		if ( BG_InventoryContainsWeapon( weapon, bot->client->ps.stats ) )
-		{
+
+		if ( !G_OnSameTeam( self, bot ) )
+			continue;
+
+		if ( BG_InventoryContainsWeapon( weapon,
+				bot->client->ps.stats ) )
 			return true;
-		}
 	}
 	return false;
 }
@@ -2293,12 +2227,12 @@ static gentity_t *BotPopEnemy( enemyQueue_t *queue )
 
 void BotPain( gentity_t *self, gentity_t *attacker, int )
 {
-	if ( G_Team( attacker ) != TEAM_NONE && G_Team( attacker ) != self->client->pers.team )
+	if ( G_Team( attacker ) != TEAM_NONE
+		&& !G_OnSameTeam( self, attacker )
+		&& attacker->s.eType == entityType_t::ET_PLAYER )
 	{
-		if ( attacker->s.eType == entityType_t::ET_PLAYER )
-		{
-			BotPushEnemy( &self->botMind->enemyQueue, attacker );
-		}
+
+		BotPushEnemy( &self->botMind->enemyQueue, attacker );
 	}
 }
 
@@ -2435,13 +2369,12 @@ glm::vec3 botTarget_t::getPos() const
 	return glm::vec3();
 }
 
-// Reimplementation of daemon's function of same name.
-// This lacks doc because I am unsure about what it does exactly, and don't
-// want to think about it for now.
-// TODO: replace with code from GLM: pretty sure there's an equivalent.
-glm::vec3 ProjectPointOntoVector( const glm::vec3 &point, const glm::vec3 &vStart, const glm::vec3 &vEnd )
+
+// Reimplementation of Daemon's ProjectPointOntoVector.
+// Projects `point` onto the line passing through linePoint1 and linePoint2.
+glm::vec3 ProjectPointOntoVector( const glm::vec3 &point, const glm::vec3 &linePoint1, const glm::vec3 &linePoint2 )
 {
-	glm::vec3 pVec = point - vStart;
-	glm::vec3 vec = glm::normalize( vEnd - vStart );
-	return vStart + glm::dot( pVec, vec ) * vec;
+	glm::vec3 pointRelative = point - linePoint1;
+	glm::vec3 lineDir = glm::normalize( linePoint2 - linePoint1 );
+	return linePoint1 + glm::dot( pointRelative, lineDir ) * lineDir;
 }
