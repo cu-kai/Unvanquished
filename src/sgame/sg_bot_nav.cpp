@@ -532,14 +532,23 @@ static bool BotFindSteerTarget( gentity_t *self, glm::vec3 &dir )
 // Returns true on error
 static bool BotAvoidObstacles( gentity_t *self, glm::vec3 &dir )
 {
-	gentity_t const *blocker = BotGetPathBlocker( self, dir );
 	dir = self->botMind->nav().glm_dir();
+	gentity_t const *blocker = BotGetPathBlocker( self, dir );
 
 	if ( !blocker )
 	{
 		return false;
 	}
 
+	// ignore some stuff like geometry, movers...
+	switch( blocker->s.eType )
+	{
+		case entityType_t::ET_GENERAL:
+		case entityType_t::ET_MOVER:
+			return false;
+		default:
+			break;
+	}
 	if ( BotShouldJump( self, blocker, dir ) )
 	{
 		BotJump( self );
