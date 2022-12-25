@@ -1301,15 +1301,13 @@ static int admin_out( void *admin, char *str )
 
 	l = G_admin_level( a->level );
 
-	int lncol = Color::StrlenNocolor( l->name );
-
 	if ( a->lastSeen.tm_mday )
 	{
 		trap_GetTimeString( lastSeen, sizeof( lastSeen ), "%Y-%m-%d", &a->lastSeen );
 	}
 
-	Com_sprintf( str, MAX_STRING_CHARS, "%-6d %*s %s %s",
-	             a->level, admin_level_maxname + lncol, l ? l->name : "(null)",
+	Com_sprintf( str, MAX_STRING_CHARS, "%-6d %*s ^*%s %s",
+	             a->level, admin_level_maxname, l ? l->name : "(null)",
 	             lastSeen, a->name );
 
 	return 0;
@@ -2014,7 +2012,7 @@ bool G_admin_readconfig( gentity_t *ent )
 			{
 				admin_readconfig_string( &cnf, l->name, sizeof( l->name ) );
 				// max printable name length for formatting
-				len = Color::StrlenNocolor( l->name );
+				len = strlen( l->name );
 
 				if ( len > admin_level_maxname )
 				{
@@ -3876,15 +3874,13 @@ bool G_admin_listplayers( gentity_t *ent )
 			lname[ 0 ] = 0;
 		}
 
-		int colorlen = Color::StrlenNocolor( lname );
-
 		ADMBP( va( "%2i %s%c^7 %-2i^2%c^7 %*s^* ^5%c^1%c%c%s^7 %s^* %s%s%s %s",
 		           i,
 		           Color::ToString( color ).c_str(),
 		           t,
 		           ( l && authed ) ? l->level : 0,
 		           hint ? '*' : ' ',
-		           admin_level_maxname + colorlen,
+		           admin_level_maxname,
 		           lname,
 		           bot,
 		           muted,
@@ -3896,6 +3892,15 @@ bool G_admin_listplayers( gentity_t *ent )
 		           ( registeredname && authed ) ? "^*)" : "",
 		           ( !authed ) ? "^1NOT AUTHED" : "" ) );
 	}
+
+	ADMBP( va( "\n^3listplayers:^* legend:" ) );
+
+	if ( canset ){
+		ADMBP( va( "^2*^* = you may set this player's admin level." ) );
+	}
+
+	ADMBP( va( "^5R^* = this player is a bot.       ^1M^* = this player is muted." ) );
+	ADMBP( va( "^1B^* = this player may not build.  ^3W^* = this player has been warned." ) );
 
 	ADMBP_end();
 	return true;
