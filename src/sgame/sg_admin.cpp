@@ -3887,9 +3887,9 @@ bool G_admin_listplayers( gentity_t *ent )
 		           denied,
 		           canseeWarn ? ( p->pers.hasWarnings ? "^3W" : " " ) : "",
 		           p->pers.netname,
-		           ( registeredname && authed ) ? "(a.k.a. " : "",
-		           ( registeredname && authed ) ? registeredname : "",
-		           ( registeredname && authed ) ? "^*)" : "",
+		           ( registeredname ) ? "(a.k.a. " : "",
+		           ( registeredname ) ? registeredname : "",
+		           ( registeredname ) ? "^*)" : "",
 		           ( !authed ) ? "^1NOT AUTHED" : "" ) );
 	}
 
