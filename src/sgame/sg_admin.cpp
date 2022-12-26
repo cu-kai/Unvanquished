@@ -3900,7 +3900,7 @@ bool G_admin_listplayers( gentity_t *ent )
 	}
 
 	ADMBP( va( "^5R^* = this player is a bot.       ^1M^* = this player is muted." ) );
-	ADMBP( va( "^1B^* = this player may not build.  ^3W^* = this player has been warned." ) );
+	ADMBP( va( "^1B^* = this player may not build.  %s", ( canseeWarn ? "^3W^* = this player has been warned." : "" ) ) );
 
 	ADMBP_end();
 	return true;
