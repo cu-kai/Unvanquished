@@ -561,6 +561,34 @@ static void CG_Menu( int menuType, int arg )
 			shortMsg = _("Building has been disabled for your team");
 			break;
 
+		case MN_B_SUDDENDEATH_1:
+			longMsg = _("^1SUDDEN DEATH HAS BEGUN.\n"
+						"^3You may only rebuild the following\n"
+						"^3buildings during Sudden Death:\n"
+						"^7Armoury\n"
+						"^7Medistation\n"
+						"^7Booster\n"
+						"^7Overmind\n"
+						"^7Reactor");
+			shortMsg = _("Building is limited during Sudden Death");
+			break;
+
+		case MN_B_SUDDENDEATH_2:
+			longMsg = _("^1SUDDEN DEATH HAS BEGUN.\n"
+						"^3You may not build any structures\n"
+						"^3during Sudden Death.");
+			shortMsg = _("You may not build during Sudden Death");
+			break;
+
+		case MN_B_SUDDENDEATH_ONLYONE:
+			longMsg = _("^1SUDDEN DEATH HAS BEGUN.\n"
+						"^3You may only rebuild one of\n"
+						"^3these during Sudden Death.\n"
+						"^7Please deconstruct all existing\n"
+						"^7structures of this type first.");
+			shortMsg = _("You may only rebuild one of these during SD");
+			break;
+
 		case MN_B_REVOKED:
 			longMsg = _("You are no longer permitted to build.");
 			shortMsg = _("You are no longer permitted to build");
