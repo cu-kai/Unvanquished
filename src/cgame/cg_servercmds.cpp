@@ -163,6 +163,8 @@ void CG_ParseServerinfo()
 	cgs.buildPointRecoveryInitialRate  = atof( Info_ValueForKey( info, "g_BPRecoveryInitialRate" ) );
 	cgs.buildPointRecoveryRateHalfLife = atof( Info_ValueForKey( info, "g_BPRecoveryRateHalfLife" ) );
 
+	cgs.suddenDeathDrillCount = atof( Info_ValueForKey( info, "g_suddenDeathDrillCount" ) );
+
 	BG_SetForbiddenEquipment(  std::string( Info_ValueForKey( info, "g_disabledEquipment"  ) ) );
 	BG_SetForbiddenClasses(    std::string( Info_ValueForKey( info, "g_disabledClasses"    ) ) );
 	BG_SetForbiddenBuildables( std::string( Info_ValueForKey( info, "g_disabledBuildables" ) ) );
@@ -562,15 +564,16 @@ static void CG_Menu( int menuType, int arg )
 			break;
 
 		case MN_B_SUDDENDEATH_1:
-			longMsg = _("^1SUDDEN DEATH HAS BEGUN.\n"
+			longMsg = _( va( "^1SUDDEN DEATH HAS BEGUN.\n"
 						"^3You may only rebuild the following\n"
 						"^3buildings during Sudden Death:\n"
 						"^7Armoury\n"
 						"^7Medistation\n"
-						"^7Drill\n"
+						"^7Drill^3* ^7(x^3%.0f^7)\n"
 						"^7Booster\n"
 						"^7Overmind\n"
-						"^7Reactor");
+						"^7Reactor",
+						cgs.suddenDeathDrillCount > -1 ? cgs.suddenDeathDrillCount : 999 ) ); // show the real count, or an unlikely max value
 			shortMsg = _("Building is limited during Sudden Death");
 			break;
 
