@@ -567,6 +567,7 @@ static void CG_Menu( int menuType, int arg )
 						"^3buildings during Sudden Death:\n"
 						"^7Armoury\n"
 						"^7Medistation\n"
+						"^7Drill\n"
 						"^7Booster\n"
 						"^7Overmind\n"
 						"^7Reactor");
