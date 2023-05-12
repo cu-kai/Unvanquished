@@ -9,18 +9,61 @@
 		</style>
 	</head>
 	<body template="window" id="welcome" style="width:45em; margin: 1em;">
-		<h1>Welcome to Unvanquished</h1>
+		<h1>Der Bunker Unvanquished</h1>
 		<tabset>
 			<tab>
 				<img class="emoticon" src="/emoticons/official" />
-				<translate>Welcome</translate>
+				<translate> Welcome</translate>
 			</tab>
 			<panel>
-				<translate>Welcome to Unvanquished</translate>
+				<h1><translate>Welcome to Der Bunker.</translate></h1>
+				<h2><translate>Server and Game Information</translate></h2>
 				<br />
+				<!-- FIXME: use a proper list (ul+li isn't supported as of now) -->
+				<h3><translate>Come chat to us:</translate></h3>
+				<indent>
+					• <translate emoticons>We are usually on Discord, for the invite please visit our website, zittrig.eu, which also contains a number of other Tremulous [bsuit] related links.</translate>
+				</indent>
+				<br /><br />
+				<translate><h3>Alternatively, chat to the Unvanquished devs:</h3></translate>
+				<indent>
+					• <translate>IRC and Matrix in <b>#unvanquished</b> and <b>#unvanquished-dev</b> on Libera.Chat</translate><br />
+					• <translate>The forum, <b>forums.unvanquished.net</b></translate><br />
+					<br />
+					• <translate>Discover more about Unvanquished in the wiki, <b>wiki.unvanquished.net</b></translate>
+				</indent>
 				<br />
-				<translate>Close this menu and click anywhere to join a team and begin playing!</translate>
+				<h2>Please check the changelogs</h2>
+				<h2>located left of this panel.</h2>
+				<h1> ← </h1>
+				<br /><br />
+				<translate><p>You can re-open this panel from the main menu or by reconnecting to the server.</p></translate>
+			</panel>
+			<tab>
+				<img class="emoticon" src="/emoticons/featured" />
+				<translate quake> ^20.3.15 (0.54.0)</translate>
+			</tab>
+			<panel>
+				<h1><translate>Der Bunker Changelog</translate></h1>
+				<h2><translate quake>^30.3.15 ^7(CURRENT VERSION)</translate></h2>
+				<h3><translate quake>^5on Unvanquished 0.54.0</translate></h3>
+				<br />
+				<translate><h3>SUDDEN DEATH</h3></translate>
+				<translate><p>Sudden Death has been reintroduced in an effort to shorten games a little. After a certain period of time, building is limited or outright disabled (depending on how the server is configured). During Sudden Death (mode 1) you may only rebuild one of the following:</p></translate>
+				<indent>
+					• <translate emoticons>[reactor] Reactor and [overmind] Overmind - these remain unchanged, you can always rebuild them if they are marked.</translate><br />
+					• <translate emoticons>[armoury] Armoury</translate><br />
+					• <translate emoticons>[medstat] Medistation</translate><br />
+					• <translate emoticons>[booster] Booster</translate><br />
+					• <translate emoticons>[drill] ^3*NEW* in Bunker 0.3.1:^; Drill</translate>
+				</indent>
+				<br />
+				<translate><p>During Sudden Death mode 2, nothing may be rebuilt.</p></translate><br />
+				<translate><p>Bunker 0.3.2, 0.3.3 & 0.3.10 - 0.3.15 update the server & client to the latest upstream with Bunker's patches on top</p></translate>
 			</panel>
 		</tabset>
+		<buttonbar>
+			<button onclick='Events.pushevent("hide welcome", event)'><translate>Close</translate></button>
+		</buttonbar>
 	</body>
 </rml>
