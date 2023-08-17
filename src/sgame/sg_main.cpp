@@ -62,7 +62,7 @@ Cvar::Cvar<std::string> g_inactivity("g_inactivity", "seconds of inactivity befo
 Cvar::Cvar<int> g_debugMove("g_debugMove", "sgame pmove debug level", Cvar::NONE, 0);
 Cvar::Cvar<bool> g_debugFire("g_debugFire", "debug ground fire spawning", Cvar::NONE, false);
 
-Cvar::Callback<Cvar::Cvar<std::string>> g_motd("g_motd", "message of the day", Cvar::NONE, "", 
+Cvar::Callback<Cvar::Cvar<std::string>> g_motd("g_motd", "message of the day", Cvar::NONE, "",
                                                [](std::string) {
                                                 	trap_SetConfigstring( CS_MOTD, g_motd.Get().c_str() );  // message of the day
                                                });
@@ -341,6 +341,7 @@ Cvar::Cvar<int> g_bot_reactiontime("g_bot_reactiontime", "bots' reaction time to
 Cvar::Cvar<bool> g_bot_infiniteFunds("g_bot_infiniteFunds", "give bots unlimited funds", Cvar::NONE, false);
 Cvar::Cvar<bool> g_bot_infiniteMomentum("g_bot_infiniteMomentum", "allow bots to ignore momentum, but not other restrictions", Cvar::NONE, false);
 Cvar::Cvar<int> g_bot_aliensenseRange("g_bot_aliensenseRange", "custom aliensense range for bots", Cvar::NONE, ALIENSENSE_RANGE);
+Cvar::Cvar<int> g_bot_radarRange("g_bot_radarRange", "custom radar range for bots", Cvar::NONE, ALIENSENSE_RANGE);
 Cvar::Cvar<std::string> g_bot_defaultBehavior("g_bot_defaultBehavior", "name of the default .bt file", Cvar::NONE, BOT_DEFAULT_BEHAVIOR);
 
 //</bot stuff>
