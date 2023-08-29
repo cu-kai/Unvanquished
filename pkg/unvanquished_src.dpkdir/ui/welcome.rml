@@ -41,11 +41,11 @@
 			</panel>
 			<tab>
 				<img class="emoticon" src="/emoticons/featured" />
-				<translate quake> ^20.3.15 (0.54.0)</translate>
+				<translate quake> ^20.3.16 (0.54.0)</translate>
 			</tab>
 			<panel>
 				<h1><translate>Der Bunker Changelog</translate></h1>
-				<h2><translate quake>^30.3.15 ^7(CURRENT VERSION)</translate></h2>
+				<h2><translate quake>^30.3.16 ^7(CURRENT VERSION)</translate></h2>
 				<h3><translate quake>^5on Unvanquished 0.54.0</translate></h3>
 				<br />
 				<translate><h3>SUDDEN DEATH</h3></translate>
@@ -55,11 +55,12 @@
 					• <translate emoticons>[armoury] Armoury</translate><br />
 					• <translate emoticons>[medstat] Medistation</translate><br />
 					• <translate emoticons>[booster] Booster</translate><br />
-					• <translate emoticons>[drill] ^3*NEW* in Bunker 0.3.1:^; Drill</translate>
+					• <translate emoticons>[drill] ^3*NEW* in Bunker 0.3.1:^; Drill</translate><br />
+					• <translate emoticons>[drill] ^3*NEW* in Bunker 0.3.16:^; Leech</translate>
 				</indent>
 				<br />
 				<translate><p>During Sudden Death mode 2, nothing may be rebuilt.</p></translate><br />
-				<translate><p>Bunker 0.3.2, 0.3.3 & 0.3.10 - 0.3.15 update the server & client to the latest upstream with Bunker's patches on top</p></translate>
+				<translate><p>Bunker 0.3.2, 0.3.3 & 0.3.10 - 0.3.16 update the server & client to the latest upstream with Bunker's patches on top</p></translate>
 			</panel>
 		</tabset>
 		<buttonbar>
