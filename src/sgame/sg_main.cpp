@@ -180,6 +180,7 @@ Cvar::Callback<Cvar::Cvar<int>> g_suddenDeathTime(
 Cvar::Cvar<int> g_suddenDeathMode("g_suddenDeathMode", "Sudden Death mode. After g_suddenDeathTime, either: 0) SD disabled. OR 1) allow arm, medi, boost & main building rebuild. OR 2) allow no rebuilding.", Cvar::NONE, 0);
 // humans are more vulnerable than aliens at SD and rely on their buildings more, so we may allow a certain number of drills to be rebuilt after SD.
 Cvar::Range<Cvar::Cvar<int>> g_suddenDeathDrillCount("g_suddenDeathDrillCount", "Humans may be permitted to rebuild this many drills after Sudden Death.", Cvar::SERVERINFO, 1, -1, 64); 
+Cvar::Range<Cvar::Cvar<int>> g_suddenDeathLeechCount("g_suddenDeathLeechCount", "Aliens may be permitted to rebuild this many leeches after Sudden Death.", Cvar::SERVERINFO, 1, -1, 64); 
 
 Cvar::Cvar<float> g_alienOffCreepRegenHalfLife("g_alienOffCreepRegenHalfLife", "half-life in seconds for decay of creep's healing bonus", Cvar::NONE, 0);
 
@@ -1435,6 +1436,21 @@ itemBuildError_t G_SuddenDeathBuildCheck( buildable_t buildable, bool build )
 		if ( structures[ BG_Buildable( buildable )->number ].count >= g_suddenDeathDrillCount.Get() )
 		{
 			return ( g_suddenDeathDrillCount.Get() == 1 ? IBE_SUDDENDEATH_ONLYONE : IBE_SUDDENDEATH_1 );
+		}
+
+		return IBE_NONE;
+	}
+
+	if ( buildable == BA_A_LEECH ) // special case for leeches, because you can have >1 at SD and it's configurable by cvar.
+	{
+		if ( g_suddenDeathLeechCount.Get() == -1 )
+		{
+			return IBE_NONE; // -1 for unlimited leeches
+		}
+
+		if ( structures[ BG_Buildable( buildable )->number ].count >= g_suddenDeathLeechCount.Get() )
+		{
+			return ( g_suddenDeathLeechCount.Get() == 1 ? IBE_SUDDENDEATH_ONLYONE : IBE_SUDDENDEATH_1 );
 		}
 
 		return IBE_NONE;

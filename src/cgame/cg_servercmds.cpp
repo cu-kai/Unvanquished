@@ -167,6 +167,7 @@ void CG_ParseServerinfo()
 	cgs.buildPointRecoveryRateHalfLife = atof( Info_ValueForKey( info, "g_BPRecoveryRateHalfLife" ) );
 
 	cgs.suddenDeathDrillCount = atof( Info_ValueForKey( info, "g_suddenDeathDrillCount" ) );
+	cgs.suddenDeathLeechCount = atof( Info_ValueForKey( info, "g_suddenDeathLeechCount" ) );
 
 	BG_SetForbiddenEquipment(  std::string( Info_ValueForKey( info, "g_disabledEquipment"  ) ) );
 	BG_SetForbiddenClasses(    std::string( Info_ValueForKey( info, "g_disabledClasses"    ) ) );
@@ -573,7 +574,8 @@ static void CG_Menu( int menuType, int arg )
 						"%s" // boost
 						"%s" // medi
 						"%s" // arm
-						"%s", // drill
+						"%s" // drill
+						"%s", // leech
 						( t == TEAM_ALIENS ? "^7Overmind\n" : "" ),
 						( t == TEAM_HUMANS ? "^7Reactor\n" : "" ),
 						( t == TEAM_ALIENS ? "^7Booster\n" : "" ),
@@ -582,8 +584,13 @@ static void CG_Menu( int menuType, int arg )
 						( t == TEAM_HUMANS && cgs.suddenDeathDrillCount != 0 ? 
 						  va( "^7Drill^3* ^7(x^3%.0f^7)\n", 
 						      cgs.suddenDeathDrillCount > -1 ? cgs.suddenDeathDrillCount : 999 )
-							  // show the real drill count, or an unlikely max value;	
-						  : "" ) ) );
+						      // show the real drill count, or an unlikely max value;
+						  : "" ),
+						( t == TEAM_ALIENS && cgs.suddenDeathLeechCount != 0 ? 
+						va( "^7Leech^3* ^7(x^3%.0f^7)\n", 
+						    cgs.suddenDeathLeechCount > -1 ? cgs.suddenDeathLeechCount : 999 )
+						    // show the real leech count, or an unlikely max value;
+						: "" ) ) );
 
 			shortMsg = _("Building is limited during Sudden Death");
 			break;

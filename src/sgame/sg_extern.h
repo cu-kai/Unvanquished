@@ -107,6 +107,7 @@ extern Cvar::Cvar<bool> g_alienAllowBuilding;
 
 extern Cvar::Cvar<int> g_suddenDeathMode;
 extern Cvar::Range<Cvar::Cvar<int>> g_suddenDeathDrillCount;
+extern Cvar::Range<Cvar::Cvar<int>> g_suddenDeathLeechCount;
 extern Cvar::Callback<Cvar::Cvar<int>> g_suddenDeathTime;
 
 extern Cvar::Cvar<float> g_alienOffCreepRegenHalfLife;
