@@ -394,6 +394,11 @@ static AIValue_t stuckTime( gentity_t *self, const AIValue_t* )
 	return AIBoxInt( level.time - self->botMind->stuckTime );
 }
 
+static AIValue_t timeSinceBehaviorChange( gentity_t *self, const AIValue_t* )
+{
+	return AIBoxInt( level.time - self->botMind->lastBehaviorChangeTime );
+}
+
 // functions accessible to the behavior tree for use in condition nodes
 static const struct AIConditionMap_s
 {
@@ -433,6 +438,7 @@ static const struct AIConditionMap_s
 	{ "stuckTime",         stuckTime,         0 },
 	{ "team",              botTeam,           0 },
 	{ "teamateHasWeapon",  teamateHasWeapon,  1 },
+	{ "timeSinceBehaviorChange", timeSinceBehaviorChange, 0},
 	{ "weapon",            currentWeapon,     0 }
 };
 
@@ -1004,10 +1010,14 @@ static const struct AIActionMap_s
 	{ "activateUpgrade",   BotActionActivateUpgrade,   1, 1 },
 	{ "aimAtGoal",         BotActionAimAtGoal,         0, 0 },
 	{ "alternateStrafe",   BotActionAlternateStrafe,   0, 0 },
+	{ "build",             BotActionBuild,             0, 0 },
+	{ "buildInRadius",     BotActionBuildInRadius,     1, 4 },
+	{ "buildMain",         BotActionBuildMain,         0, 0 },
 	{ "buy",               BotActionBuy,               1, 4 },
 	{ "changeGoal",        BotActionChangeGoal,        1, 3 },
 	{ "classDodge",        BotActionClassDodge,        0, 0 },
 	{ "deactivateUpgrade", BotActionDeactivateUpgrade, 1, 1 },
+	{ "devolveToBuilder",  BotActionDevolveToBuilder,  0, 0 },
 	{ "equip",             BotActionBuy,               0, 0 },
 	{ "evolve",            BotActionEvolve,            0, 0 },
 	{ "evolveTo",          BotActionEvolveTo,          1, 1 },

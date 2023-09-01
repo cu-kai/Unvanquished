@@ -2555,6 +2555,7 @@ void G_RunFrame( int levelTime )
 
 	G_BotBackgroundNavgen();
 	G_BotFill( false );
+	G_BotSetAutomaticBehaviors();
 
 	// update to team status?
 	CheckTeamStatus();
