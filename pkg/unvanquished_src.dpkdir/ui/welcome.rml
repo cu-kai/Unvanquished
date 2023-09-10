@@ -41,11 +41,24 @@
 			</panel>
 			<tab>
 				<img class="emoticon" src="/emoticons/featured" />
-				<translate quake> ^20.3.16 (0.54.0)</translate>
+				<translate quake> ^20.4.0 (0.54.0)</translate>
 			</tab>
 			<panel>
 				<h1><translate>Der Bunker Changelog</translate></h1>
-				<h2><translate quake>^30.3.16 ^7(CURRENT VERSION)</translate></h2>
+				<h2><translate quake>^30.4.0 ^7(CURRENT VERSION)</translate></h2>
+				<h3><translate quake>^5on Unvanquished 0.54.0</translate></h3>
+				<br />
+				<translate><h3>Biokit</h3></translate>
+				<translate><p>The Biokit has been introduced and while you own one, damage taken from poison attacks will be reduced by 60%. You will also heal at a rate of 1 hp per 3 seconds.</p></translate><br />
+				<translate emoticons>To balance this change, Alien [booster] poison now deals 2x damage, so 10 hp per second if you have no upgrades.</translate>
+			</panel>
+			<tab>
+				<img class="emoticon" src="/emoticons/official" />
+				<translate quake> 0.3.16 (0.54.0)</translate>
+			</tab>
+			<panel>
+				<h1><translate>Der Bunker Changelog</translate></h1>
+				<h2><translate quake>^30.3.16</translate></h2>
 				<h3><translate quake>^5on Unvanquished 0.54.0</translate></h3>
 				<br />
 				<translate><h3>SUDDEN DEATH</h3></translate>
