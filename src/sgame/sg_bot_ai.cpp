@@ -1267,7 +1267,9 @@ AINodeStatus_t BotActionBuildInRadius( gentity_t *self, AIGenericNode_t *node )
 			return STATUS_FAILURE;
 		}
 
-		if ( G_GetFreeBudget( G_Team( self ) ) < BG_Buildable( toBuild )->buildPoints )
+		if ( toBuild != BA_A_LEECH
+			 && toBuild != BA_H_DRILL
+			 && G_GetFreeBudget( G_Team( self ) ) < BG_Buildable( toBuild )->buildPoints )
 		{
 			return STATUS_FAILURE;
 		}
@@ -1308,7 +1310,9 @@ AINodeStatus_t BotActionBuild( gentity_t *self, AIGenericNode_t *node )
 		return STATUS_FAILURE;
 	}
 
-	if ( G_GetFreeBudget( G_Team( self ) ) < BG_Buildable( toBuild )->buildPoints )
+	if ( toBuild != BA_A_LEECH
+		 && toBuild != BA_H_DRILL
+		 && G_GetFreeBudget( G_Team( self ) ) < BG_Buildable( toBuild )->buildPoints )
 	{
 		return STATUS_FAILURE;
 	}
