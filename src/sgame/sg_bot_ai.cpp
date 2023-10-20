@@ -1235,6 +1235,10 @@ AINodeStatus_t BotActionBuildInRadius( gentity_t *self, AIGenericNode_t *node )
 	AIEntity_t e = ( AIEntity_t ) AIUnBoxInt( a->params[ 0 ] );
 	float radius = AIUnBoxFloat( a->params[ 1 ] );
 	botEntityAndDistance_t ent = AIEntityToGentity( self, e );
+	if ( ent.ent == nullptr )
+	{
+		return STATUS_FAILURE;
+	}
 
 	if ( node != self->botMind->currentNode )
 	{
