@@ -41,11 +41,24 @@
 			</panel>
 			<tab>
 				<img class="emoticon" src="/emoticons/featured" />
-				<translate quake> ^20.5.x (0.54.1)</translate>
+				<translate quake> ^20.5.2 (0.54.1)</translate>
 			</tab>
 			<panel>
 				<h1><translate>Der Bunker Changelog</translate></h1>
-				<h2><translate quake>^30.5.1 ^7(CURRENT VERSION)</translate></h2>
+				<h2><translate quake>^30.5.2 ^7(CURRENT VERSION)</translate></h2>
+				<h3><translate quake>^5on Unvanquished 0.54.1</translate></h3>
+				<br />
+				<translate><h3>Biokit</h3></translate>
+				<translate><p>Bunker 0.5.2 brings a buff to the biokit to make it more useful. Now it heals 1hp per 2 seconds and increases your stamina regeneration rate.</p></translate><br />
+				<br />
+			</panel>
+			<tab>
+				<img class="emoticon" src="/emoticons/featured" />
+				<translate quake> 0.5.0 & 0.5.1 (0.54.1)</translate>
+			</tab>
+			<panel>
+				<h1><translate>Der Bunker Changelog</translate></h1>
+				<h2><translate quake>^30.5.0 & 0.5.1</translate></h2>
 				<h3><translate quake>^5on Unvanquished 0.54.1</translate></h3>
 				<br />
 				<translate><h3>Biokit</h3></translate>
