@@ -45,7 +45,8 @@ static Cvar::Range<Cvar::Cvar<int>> g_bot_ignoreSmallObstacles(
 		"0 is disabled. Should only be enabled on maps with known problem."
 		"Maximum is 18, which is bots' stepsize.", Cvar::NONE, 0, 0, 18 );
 
-constexpr int ACTIVATE = 0x80; // spawnflags with this bit can be triggered by `+activate`
+constexpr int ACTIVATE = 1 << 7; // those doors and buttons can be triggered by `+activate`
+constexpr int TOGGLE   = 1 << 8;  // those doors and buttons will ignore the "wait" value and will not automatically return in position
 /*
 ===============================================================================
 
@@ -966,7 +967,10 @@ static void BinaryMover_reached( gentity_t *ent )
 
 		// return to pos1 after a delay
 		master->think = ReturnToPos1orApos1;
-		master->nextthink = std::max( master->nextthink, level.time + (int) ent->config.wait.time );
+		if ( 0 == ( master->spawnflags & TOGGLE ) )
+		{
+			master->nextthink = std::max( master->nextthink, level.time + (int) ent->config.wait.time );
+		}
 
 		// fire targets
 		if ( !ent->activator )
@@ -1006,7 +1010,10 @@ static void BinaryMover_reached( gentity_t *ent )
 
 		// return to apos1 after a delay
 		master->think = ReturnToPos1orApos1;
-		master->nextthink = std::max( master->nextthink, level.time + (int) ent->config.wait.time );
+		if ( 0 == ( master->spawnflags & TOGGLE ) )
+		{
+			master->nextthink = std::max( master->nextthink, level.time + (int) ent->config.wait.time );
+		}
 
 		// fire targets
 		if ( !ent->activator )
@@ -1082,212 +1089,215 @@ void BinaryMover_act( gentity_t *ent, gentity_t *other, gentity_t *activator )
 
 	for ( ent = master; ent; ent = ent->groupChain )
 	{
-	//ind
-	if ( ent->moverState == MOVER_POS1 )
-	{
-		// start moving 50 msec later, because if this was player-
-		// triggered, level.time hasn't been advanced yet
-		SetMoverState( ent, MOVER_1TO2, level.time + 50 );
-
-		// starting sound
-		if ( ent->sound1to2 )
+		//ind
+		if ( ent->moverState == MOVER_POS1 )
 		{
-			G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
+			// start moving 50 msec later, because if this was player-
+			// triggered, level.time hasn't been advanced yet
+			SetMoverState( ent, MOVER_1TO2, level.time + 50 );
+
+			// starting sound
+			if ( ent->sound1to2 )
+			{
+				G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
+			}
+
+			// looping sound
+			ent->s.loopSound = ent->soundIndex;
+
+			// open areaportal
+			if ( ent->groupMaster == ent || !ent->groupMaster )
+			{
+				trap_AdjustAreaPortalState( ent, true );
+			}
 		}
-
-		// looping sound
-		ent->s.loopSound = ent->soundIndex;
-
-		// open areaportal
-		if ( ent->groupMaster == ent || !ent->groupMaster )
+		else if ( ent->moverState == MOVER_POS2
+				&& !( groupState == MOVER_1TO2 || other == master ) )
 		{
-			trap_AdjustAreaPortalState( ent, true );
+			// if all the way up, just delay before coming down
+			master->think = ReturnToPos1orApos1;
+			master->nextthink = std::max( master->nextthink, level.time + (int) ent->config.wait.time );
 		}
-	}
-	else if ( ent->moverState == MOVER_POS2 &&
-	          !( groupState == MOVER_1TO2 || other == master ) )
-	{
-		// if all the way up, just delay before coming down
-		master->think = ReturnToPos1orApos1;
-		master->nextthink = std::max( master->nextthink, level.time + (int) ent->config.wait.time );
-	}
-	else if ( ent->moverState == MOVER_POS2 &&
-	          ( groupState == MOVER_1TO2 || other == master ) )
-	{
-		// start moving 50 msec later, because if this was player-
-		// triggered, level.time hasn't been advanced yet
-		SetMoverState( ent, MOVER_2TO1, level.time + 50 );
-
-		// starting sound
-		if ( ent->sound2to1 )
-			G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound2to1 );
-
-		// looping sound
-		ent->s.loopSound = ent->soundIndex;
-
-		// open areaportal
-		if ( ent->groupMaster == ent || !ent->groupMaster )
-			trap_AdjustAreaPortalState( ent, true );
-
-		//HACK: this is really ugly, should have specialise code,
-		//but I'm both lazy, buzy to fix old mess, and annoyed by
-		//said years-old mess
-		ent->health = ent->config.health;
-	}
-	else if ( ent->moverState == MOVER_2TO1 )
-	{
-		// only partway down before reversing
-		total = ent->s.pos.trDuration;
-		partial = level.time - ent->s.pos.trTime;
-
-		if ( partial > total )
+		else if ( ent->moverState == MOVER_POS2
+				&& ( groupState == MOVER_1TO2 || other == master ) )
 		{
-			partial = total;
+			// start moving 50 msec later, because if this was player-
+			// triggered, level.time hasn't been advanced yet
+			SetMoverState( ent, MOVER_2TO1, level.time + 50 );
+
+			// starting sound
+			if ( ent->sound2to1 )
+				G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound2to1 );
+
+			// looping sound
+			ent->s.loopSound = ent->soundIndex;
+
+			// open areaportal
+			if ( ent->groupMaster == ent || !ent->groupMaster )
+				trap_AdjustAreaPortalState( ent, true );
+
+			//HACK: this is really ugly, should have specialise code,
+			//but I'm both lazy, buzy to fix old mess, and annoyed by
+			//said years-old mess
+			ent->health = ent->config.health;
 		}
-
-		SetMoverState( ent, MOVER_1TO2, level.time - ( total - partial ) );
-
-		if ( ent->sound1to2 )
+		else if ( ent->moverState == MOVER_2TO1 )
 		{
-			G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
-		}
-	}
-	else if ( ent->moverState == MOVER_1TO2 )
-	{
-		// only partway up before reversing
-		total = ent->s.pos.trDuration;
-		partial = level.time - ent->s.pos.trTime;
+			// only partway down before reversing
+			total = ent->s.pos.trDuration;
+			partial = level.time - ent->s.pos.trTime;
 
-		if ( partial > total )
+			if ( partial > total )
+			{
+				partial = total;
+			}
+
+			SetMoverState( ent, MOVER_1TO2, level.time - ( total - partial ) );
+
+			if ( ent->sound1to2 )
+			{
+				G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
+			}
+		}
+		else if ( ent->moverState == MOVER_1TO2 )
 		{
-			partial = total;
+			// only partway up before reversing
+			total = ent->s.pos.trDuration;
+			partial = level.time - ent->s.pos.trTime;
+
+			if ( partial > total )
+			{
+				partial = total;
+			}
+
+			SetMoverState( ent, MOVER_2TO1, level.time - ( total - partial ) );
+
+			if ( ent->sound2to1 )
+			{
+				G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound2to1 );
+			}
 		}
-
-		SetMoverState( ent, MOVER_2TO1, level.time - ( total - partial ) );
-
-		if ( ent->sound2to1 )
+		else if ( ent->moverState == ROTATOR_POS1 )
 		{
-			G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound2to1 );
-		}
-	}
-	else if ( ent->moverState == ROTATOR_POS1 )
-	{
-		// start moving 50 msec later, because if this was player-
-		// triggered, level.time hasn't been advanced yet
-		SetMoverState( ent, ROTATOR_1TO2, level.time + 50 );
+			// start moving 50 msec later, because if this was player-
+			// triggered, level.time hasn't been advanced yet
+			SetMoverState( ent, ROTATOR_1TO2, level.time + 50 );
 
-		// starting sound
-		if ( ent->sound1to2 )
+			// starting sound
+			if ( ent->sound1to2 )
+			{
+				G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
+			}
+
+			// looping sound
+			ent->s.loopSound = ent->soundIndex;
+
+			// open areaportal
+			if ( ent->groupMaster == ent || !ent->groupMaster )
+			{
+				trap_AdjustAreaPortalState( ent, true );
+			}
+		}
+		else if ( ent->moverState == ROTATOR_POS2
+				&& !( groupState == MOVER_1TO2 || other == master ) )
 		{
-			G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
+			// if all the way up, just delay before coming down
+			master->think = ReturnToPos1orApos1;
+			if ( 0 == ( master->spawnflags & TOGGLE ) )
+			{
+				master->nextthink = std::max( master->nextthink, level.time + (int) ent->config.wait.time );
+			}
 		}
-
-		// looping sound
-		ent->s.loopSound = ent->soundIndex;
-
-		// open areaportal
-		if ( ent->groupMaster == ent || !ent->groupMaster )
+		else if ( ent->moverState == ROTATOR_POS2
+				&& ( groupState == MOVER_1TO2 || other == master ) )
 		{
-			trap_AdjustAreaPortalState( ent, true );
+			// start moving 50 msec later, because if this was player-
+			// triggered, level.time hasn't been advanced yet
+			SetMoverState( ent, ROTATOR_2TO1, level.time + 50 );
+
+			// starting sound
+			if ( ent->sound2to1 )
+				G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound2to1 );
+
+			// looping sound
+			ent->s.loopSound = ent->soundIndex;
+
+			// open areaportal
+			if ( ent->groupMaster == ent || !ent->groupMaster )
+				trap_AdjustAreaPortalState( ent, true );
+
+			//HACK: this is really ugly, should have specialise code,
+			//but I'm both lazy, buzy to fix old mess, and annoyed by
+			//said years-old mess
+			ent->health = ent->config.health;
 		}
-	}
-	else if ( ent->moverState == ROTATOR_POS2 &&
-	          !( groupState == MOVER_1TO2 || other == master ) )
-	{
-		// if all the way up, just delay before coming down
-		master->think = ReturnToPos1orApos1;
-		master->nextthink = std::max( master->nextthink, level.time + (int) ent->config.wait.time );
-	}
-	else if ( ent->moverState == ROTATOR_POS2 &&
-	          ( groupState == MOVER_1TO2 || other == master ) )
-	{
-		// start moving 50 msec later, because if this was player-
-		// triggered, level.time hasn't been advanced yet
-		SetMoverState( ent, ROTATOR_2TO1, level.time + 50 );
-
-		// starting sound
-		if ( ent->sound2to1 )
-			G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound2to1 );
-
-		// looping sound
-		ent->s.loopSound = ent->soundIndex;
-
-		// open areaportal
-		if ( ent->groupMaster == ent || !ent->groupMaster )
-			trap_AdjustAreaPortalState( ent, true );
-
-		//HACK: this is really ugly, should have specialise code,
-		//but I'm both lazy, buzy to fix old mess, and annoyed by
-		//said years-old mess
-		ent->health = ent->config.health;
-	}
-	else if ( ent->moverState == ROTATOR_2TO1 )
-	{
-		// only partway down before reversing
-		total = ent->s.apos.trDuration;
-		partial = level.time - ent->s.apos.trTime;
-
-		if ( partial > total )
+		else if ( ent->moverState == ROTATOR_2TO1 )
 		{
-			partial = total;
+			// only partway down before reversing
+			total = ent->s.apos.trDuration;
+			partial = level.time - ent->s.apos.trTime;
+
+			if ( partial > total )
+			{
+				partial = total;
+			}
+
+			SetMoverState( ent, ROTATOR_1TO2, level.time - ( total - partial ) );
+
+			if ( ent->sound1to2 )
+			{
+				G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
+			}
 		}
-
-		SetMoverState( ent, ROTATOR_1TO2, level.time - ( total - partial ) );
-
-		if ( ent->sound1to2 )
+		else if ( ent->moverState == ROTATOR_1TO2 )
 		{
-			G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
-		}
-	}
-	else if ( ent->moverState == ROTATOR_1TO2 )
-	{
-		// only partway up before reversing
-		total = ent->s.apos.trDuration;
-		partial = level.time - ent->s.apos.trTime;
+			// only partway up before reversing
+			total = ent->s.apos.trDuration;
+			partial = level.time - ent->s.apos.trTime;
 
-		if ( partial > total )
+			if ( partial > total )
+			{
+				partial = total;
+			}
+
+			SetMoverState( ent, ROTATOR_2TO1, level.time - ( total - partial ) );
+
+			if ( ent->sound2to1 )
+			{
+				G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound2to1 );
+			}
+		}
+		else if ( ent->moverState == MODEL_POS1 )
 		{
-			partial = total;
+			//toggle door state
+			ent->s.legsAnim = true;
+
+			ent->think = Think_OpenModelDoor;
+			ent->nextthink = level.time + ent->config.speed;
+
+			// starting sound
+			if ( ent->sound1to2 )
+			{
+				G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
+			}
+
+			// looping sound
+			ent->s.loopSound = ent->soundIndex;
+
+			// open areaportal
+			if ( ent->groupMaster == ent || !ent->groupMaster )
+			{
+				trap_AdjustAreaPortalState( ent, true );
+			}
+
+			ent->moverState = MODEL_1TO2;
 		}
-
-		SetMoverState( ent, ROTATOR_2TO1, level.time - ( total - partial ) );
-
-		if ( ent->sound2to1 )
+		else if ( ent->moverState == MODEL_POS2 )
 		{
-			G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound2to1 );
+			// if all the way up, just delay before coming down
+			ent->nextthink = level.time + ent->config.wait.time;
 		}
-	}
-	else if ( ent->moverState == MODEL_POS1 )
-	{
-		//toggle door state
-		ent->s.legsAnim = true;
-
-		ent->think = Think_OpenModelDoor;
-		ent->nextthink = level.time + ent->config.speed;
-
-		// starting sound
-		if ( ent->sound1to2 )
-		{
-			G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
-		}
-
-		// looping sound
-		ent->s.loopSound = ent->soundIndex;
-
-		// open areaportal
-		if ( ent->groupMaster == ent || !ent->groupMaster )
-		{
-			trap_AdjustAreaPortalState( ent, true );
-		}
-
-		ent->moverState = MODEL_1TO2;
-	}
-	else if ( ent->moverState == MODEL_POS2 )
-	{
-		// if all the way up, just delay before coming down
-		ent->nextthink = level.time + ent->config.wait.time;
-	}
-	//outd
+		//outd
 	}
 }
 
@@ -1704,6 +1714,11 @@ void SP_func_door( gentity_t *self )
 	self->nextthink = level.time + FRAMETIME;
 	self->health = self->config.health;
 
+	if ( 0 != ( self->spawnflags & TOGGLE ) )
+	{
+		self->config.wait.time = 0;
+	}
+
 	if ( self->names[ 0 ] || self->config.health ) //FIXME wont work yet with class fallbacks
 	{
 		// non touch/shoot doors
@@ -1714,7 +1729,7 @@ void SP_func_door( gentity_t *self )
 			self->die = Think_MoverDeath;
 		}
 	}
-	else
+	else if ( 0 == ( self->spawnflags & TOGGLE ) )
 	{
 		self->think = Think_SpawnNewDoorTrigger;
 	}
@@ -1834,6 +1849,11 @@ void SP_func_door_rotating( gentity_t *self )
 	self->nextthink = level.time + FRAMETIME;
 	self->health = self->config.health;
 
+	if ( 0 != ( self->spawnflags & TOGGLE ) )
+	{
+		self->config.wait.time = 0;
+	}
+
 	if ( self->names[ 0 ] || self->config.health ) //FIXME wont work yet with class fallbacks
 	{
 		// non touch/shoot doors
@@ -1843,7 +1863,7 @@ void SP_func_door_rotating( gentity_t *self )
 			self->die = Think_MoverDeath;
 		}
 	}
-	else
+	else if ( 0 == ( self->spawnflags & TOGGLE ) )
 	{
 		self->think = Think_SpawnNewDoorTrigger;
 	}
@@ -1976,7 +1996,10 @@ void SP_func_door_model( gentity_t *self )
 	if ( !( self->names[ 0 ] || self->config.health ) ) //FIXME wont work yet with class fallbacks
 	{
 		self->nextthink = level.time + FRAMETIME;
-		self->think = Think_SpawnNewDoorTrigger;
+		if ( 0 == ( self->spawnflags & TOGGLE ) )
+		{
+			self->think = Think_SpawnNewDoorTrigger;
+		}
 	}
 
 	if ( self->spawnflags & ACTIVATE )
