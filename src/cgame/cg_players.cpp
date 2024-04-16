@@ -89,7 +89,8 @@ sfxHandle_t CG_CustomSound( int clientNum, const char *soundName )
 		}
 	}
 
-	Sys::Drop( "Unknown custom sound: %s", soundName );
+	Log::Warn( "Unknown custom sound: %s", soundName );
+	return trap_S_RegisterSound( "sound/null.wav", false );
 }
 
 /*
