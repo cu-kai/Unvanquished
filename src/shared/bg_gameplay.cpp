@@ -93,7 +93,7 @@ const float CREEP_MODIFIER = 0.5f;
 const float CREEP_ARMOUR_MODIFIER = 0.75f;
 const int   CREEP_SCALEDOWN_TIME = 3000;
 
-const float BARRICADE_SHRINKPROP = 0.25f;
+const float BARRICADE_SHRINKPROP = 0.04f;
 const int   BARRICADE_SHRINKTIMEOUT = 500;
 
 const int   BOOST_TIME = 20000;
