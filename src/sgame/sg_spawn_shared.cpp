@@ -94,7 +94,8 @@ void think_aimAtTarget( gentity_t *self )
 
 	float height = pickedTarget->s.origin[ 2 ] - origin[ 2 ];
 	float gravity = static_cast<float>(g_gravity.Get());
-	float time = sqrtf( height / ( 0.5f * gravity ) );
+	float sign = height / fabsf( height );
+	float time = sign * sqrtf( fabsf( height / ( 0.5f * gravity ) ) );
 
 	if ( !time )
 	{
