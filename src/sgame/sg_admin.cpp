@@ -406,6 +406,12 @@ static const g_admin_cmd_t     g_admin_cmds[] =
 	},
 
 	{
+		"setrotation",     G_admin_setrotation,    false, "setrotation",
+		N_("sets the current rotation"),
+		N_("[^3rotation name^7]")
+	},
+
+	{
 		"showbans",     G_admin_showbans,    true,  "showbans",
 		N_("display a (partial) list of active bans"),
 		N_("(^5name|IP(/mask)^7) (^5start at ban#^7)")
@@ -2638,6 +2644,41 @@ bool G_admin_setlevel( gentity_t *ent )
 	}
 
 	return true;
+}
+
+extern mapRotations_t mapRotations;
+
+bool G_admin_setrotation( gentity_t *ent )
+{
+	char new_rotation[ MAX_NAME_LENGTH ];
+
+	if ( trap_Argc() < 2 ) {
+		ADMP( QQ( N_( "^3setrotation:^* usage: setrotation [rotation name]\n" ) ) );
+		ADMP( QQ( N_( "Available rotations:\n" ) ) );
+		goto rotationlist;
+	}
+
+	trap_Argv( 1, new_rotation, sizeof( new_rotation ) );
+
+	for ( int i = 0; i < mapRotations.numRotations; i++ ) {
+		if ( Q_stricmp( mapRotations.rotations[i].name, new_rotation ) == 0 ) {
+			G_StartMapRotation( new_rotation, false, false, true, 0 );
+			G_admin_action( QQ( N_( "^3setrotation:^* rotation ^3$2$^* was started by $1$" ) ), "%s %s", ent, Quote( new_rotation ) );
+			return true;
+		}
+	}
+	ADMP( QQ( N_( "^3setrotation:^* rotation not found. Available rotations:" ) ) );
+	goto rotationlist;
+	rotationlist:
+	{
+		ADMBP_begin();
+		for ( int i = 0; i < mapRotations.numRotations; i++ ) {
+			ADMBP( va( "    %s", mapRotations.rotations[i].name ) );
+		}
+		ADMBP_end();
+		ADMP( va( "%s %d", QQ( N_( "\nNumber of available rotations: ^3$1$" ) ), mapRotations.numRotations ) );
+	}
+	return false;
 }
 
 bool G_admin_slap( gentity_t *ent )
