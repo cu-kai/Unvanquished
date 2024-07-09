@@ -30,69 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "sg_local.h"
 #include "common/FileSystem.h"
 
-#define MAX_MAP_ROTATIONS     64
-#define MAX_MAP_ROTATION_MAPS 256
-
-#define NOT_ROTATING          -1
-
-struct mrNode_t;
-struct mrCondition_t
-{
-	mrNode_t            *target;
-	char *exprString;
-};
-
-struct mrMapDescription_t
-{
-	char name[ MAX_QPATH ];
-
-	char postCommand[ MAX_STRING_CHARS ];
-	char layouts[ MAX_CVAR_VALUE_STRING ];
-};
-
-struct mrLabel_t
-{
-	char name[ MAX_QPATH ];
-};
-
-enum nodeType_t
-{
-  NT_MAP,
-  NT_CONDITION,
-  NT_GOTO,
-  NT_RESUME,
-  NT_LABEL,
-  NT_RETURN
-};
-
-struct mrNode_t
-{
-	nodeType_t type;
-
-	union
-	{
-		mrMapDescription_t  map;
-		mrCondition_t       condition;
-		mrLabel_t           label;
-	} u;
-};
-
-struct mapRotation_t
-{
-	char   name[ MAX_QPATH ];
-
-	mrNode_t *nodes[ MAX_MAP_ROTATION_MAPS ];
-	int      numNodes;
-	int      currentNode;
-};
-
-struct mapRotations_t
-{
-	mapRotation_t rotations[ MAX_MAP_ROTATIONS ];
-	int           numRotations;
-};
-
-static mapRotations_t mapRotations;
+mapRotations_t mapRotations;
 
 static int            G_CurrentNodeIndex( int rotation );
 static int            G_NodeIndexAfter( int currentNode, int rotation );
