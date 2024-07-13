@@ -342,7 +342,7 @@ static const g_admin_cmd_t     g_admin_cmds[] =
 	{
 		"nextmap",      G_admin_nextmap,     false, "nextmap",
 		N_("go to the next map in the cycle"),
-		""
+		N_("(^3!^7 - optionally forcing g_neverEnd off)")
 	},
 
 	{
@@ -4823,6 +4823,21 @@ bool G_admin_restart( gentity_t *ent )
 bool G_admin_nextmap( gentity_t *ent )
 {
 	RETURN_IF_INTERMISSION;
+
+	char force[ sizeof( "!" ) ];
+
+	if ( trap_Argc() > 0 )
+	{
+		trap_Argv( 1, force, sizeof( force ) );
+
+		G_LogPrintf( force );
+
+		if ( force[ 0 ] == '!' )
+		{
+			G_LogPrintf( "^5g_neverEnd forced to off" );
+			g_neverEnd.Set( false );
+		}
+	}
 
 	G_admin_action( QQ( N_("^3nextmap:^* $1$^* decided to load the next map") ), "%s", ent );
 	level.lastWin = TEAM_NONE;
