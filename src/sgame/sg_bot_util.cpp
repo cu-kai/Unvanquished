@@ -2257,6 +2257,7 @@ void BotFireWeaponAI( gentity_t *self )
 			}
 			break;
 		case WP_LUCIFER_CANNON:
+			if ( self->client->ps.ammo > 0 )
 			{
 				const int CRITICAL_HEALTH = 30; //TODO do not use a constant
 				int selfHP = self->client->ps.stats[ STAT_HEALTH ];
