@@ -1192,7 +1192,7 @@ const char *ClientConnect( int clientNum, bool firstTime )
 	G_SendClientPmoveParams(clientNum);
 
 	// don't do the "xxx connected" messages if they were caried over from previous level
-	if ( firstTime )
+	if ( firstTime || !ent->botMind )
 	{
 		trap_SendServerCommand( -1, va( "print_tr %s %s", QQ( N_("$1$^* connected") ),
 		                                Quote( client->pers.netname ) ) );
@@ -1261,13 +1261,6 @@ const char *ClientBotConnect( int clientNum, bool firstTime )
 	             client->pers.netname,
 	             client->pers.netname );
 
-	// don't do the "xxx connected" messages if they were caried over from previous level
-	if ( firstTime )
-	{
-		trap_SendServerCommand( -1, va( "print_tr %s %s", QQ( N_("$1$^* is connecting…") ),
-		                                Quote( client->pers.netname ) ) );
-	}
-
 	// count current clients and rank for scoreboard
 	CalculateRanks();
 
@@ -1330,7 +1323,9 @@ void ClientBegin( int clientNum )
 	// locate ent at a spawn point
 	ClientSpawn( ent, nullptr, nullptr, nullptr );
 
-	trap_SendServerCommand( -1, va( "print_tr %s %s", QQ( N_("$1$^* entered the game") ), Quote( client->pers.netname ) ) );
+	trap_SendServerCommand( -1, va( "print_tr %s %s",
+	                                ( ent->botMind ? QQ( N_("$1$^* appeared") ) : QQ( N_("$1$^* entered the game") ) ),
+	                                Quote( client->pers.netname ) ) );
 
 	std::string startMsg = g_mapStartupMessage.Get();
 
