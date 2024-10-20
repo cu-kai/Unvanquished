@@ -3239,11 +3239,11 @@ static void Cmd_Bot_Equip_f( gentity_t * ent )
 	if ( it != cvarsMap->end() )
 	{
 		it->second->Set( !it->second->Get() );
-		G_Say( ent, SAY_TEAM, va( "^A[botequip]^5 %s is %sallowed!", itemOrClassCstr, ( it->second->Get() ? "" : "^1NOT^5 " ) ) );
+		G_Say( ent, SAY_TEAM, va( "^A[botallow]^5 %s is %sallowed!", itemOrClassCstr, ( it->second->Get() ? "" : "^1NOT^5 " ) ) );
 	}
 	else
 	{
-		ADMP( va( "%s %s", QQ( N_( "^3botequip:^* unknown $1$" ) ), Quote( errMsg.c_str() ) ) );
+		ADMP( va( "%s %s", QQ( N_( "^3botallow:^* unknown $1$" ) ), Quote( errMsg.c_str() ) ) );
 	}
 }
 
@@ -3391,7 +3391,7 @@ void Cmd_BotEnemy_f( gentity_t *ent )
 			ADMP( va( "%s %d %.0f", QQ( N_("^3botenemy: ^*attack range is $1$ ($2$ m)") ), cvar.Get(), cvar.Get() * QU_TO_METER ) );
 			return;
 		}
-		
+
 		char distanceStr[ MAX_STRING_CHARS ];
 		trap_Argv( 2, distanceStr, sizeof( distanceStr ) );
 		int distance = 0;
@@ -3400,7 +3400,7 @@ void Cmd_BotEnemy_f( gentity_t *ent )
 			ADMP( QQ( N_( "^3botenemy:^* number must be from 50 to 1500" ) ) );
 			return;
 		}
-		
+
 		cvar.Set( distance );
 		G_Say( ent, SAY_TEAM, va( "^A[botenemy]^5 attack range is %d (%.0f m)!", distance, static_cast<float>( distance ) * QU_TO_METER ) );
 	}
@@ -4442,6 +4442,7 @@ static const commands_t cmds[] =
 	{ "a",               CMD_MESSAGE | CMD_INTERMISSION,      Cmd_AdminMessage_f     },
 	{ "asay",            CMD_MESSAGE | CMD_INTERMISSION,      Cmd_Say_f              },
 	{ "beacon",          CMD_TEAM | CMD_ALIVE,                Cmd_Beacon_f           },
+	{ "botallow",        CMD_TEAM,                            Cmd_Bot_Equip_f        },
 	{ "botenemy",        CMD_TEAM,                            Cmd_BotEnemy_f         },
 	{ "botequip",        CMD_TEAM,                            Cmd_Bot_Equip_f        },
 	{ "build",           CMD_TEAM | CMD_ALIVE,                Cmd_Build_f            },
