@@ -1191,9 +1191,7 @@ enum saymode_t
 };
 
 // means of death
-// keep modNames[] in g_combat.c in sync with this list!
-// keep bg_meansOfDeathData[] in bg_misc.c in sync, too!
-// TODO: Get rid of the former and use the latter instead
+// must be in sync with meansOfDeathData_t bg_meansOfDeathData in bg_misc.cpp
 enum meansOfDeath_t
 {
   MOD_UNKNOWN,
@@ -1666,6 +1664,14 @@ const beaconAttributes_t  *BG_BeaconByName( const char *name );
 const beaconAttributes_t  *BG_Beacon( int index );
 
 meansOfDeath_t            BG_MeansOfDeathByName( const char *name );
+
+struct meansOfDeathData_t
+{
+	const char     *name;
+};
+
+extern const meansOfDeathData_t bg_meansOfDeathData[];
+extern const size_t bg_numMeansOfDeath;
 
 void                      BG_InitAllConfigs();
 void                      BG_UnloadAllConfigs();
