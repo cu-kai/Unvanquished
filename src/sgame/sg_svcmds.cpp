@@ -893,6 +893,14 @@ static void Svcmd_G_AdvanceMapRotation_f()
 	G_AdvanceMapRotation( 0 );
 }
 
+static void Svcmd_G_UpdateBPVampire_f()
+{
+	Log::Notice( "^3NOTE: DEVELOPMENT COMMAND:\n"
+	             "^3      this command should only be used when a manual\n"
+	             "^3      change is made to G_BPInitialBudget{Hliens|Humans}" );
+	G_UpdateBPVampire( -1 );
+}
+
 static const struct svcmd
 {
 	const char *cmd;
@@ -929,6 +937,7 @@ static const struct svcmd
 	{ "say",                true,  Svcmd_MessageWrapper         },
 	{ "say_team",           true,  Svcmd_TeamMessage_f          },
 	{ "stopMapRotation",    false, G_StopMapRotation            },
+	{ "updateBPVampire",    false, Svcmd_G_UpdateBPVampire_f    },
 };
 
 /*

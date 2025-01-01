@@ -198,7 +198,9 @@ static const gentity_t *G_FindKillAssist( const gentity_t *self, const gentity_t
 	return assistant;
 }
 
-static Cvar::Cvar<bool> g_BPTransfer("g_BPTransfer", "BP transfer experiment", Cvar::NONE, false);
+Cvar::Cvar<bool> g_BPTransfer("g_BPTransfer", "BP transfer experiment", Cvar::NONE, false);
+static Cvar::Cvar<bool> g_BPTransferNotify("g_BPTransferNotify", "BP transfer experiment notifications", Cvar::NONE, true);
+static Cvar::Cvar<bool> g_BPTransferNotifyTeam("g_BPTransferNotifyTeam", "BP transfer experiment team notifications", Cvar::NONE, true);
 static Cvar::Cvar<float> g_BPTransferFactor("g_BPTransferFactor", "BP transfer factor", Cvar::NONE, 1.f);
 
 static int bpStolenAtThisFrame[ NUM_TEAMS ];
@@ -219,7 +221,7 @@ void G_ResetStolenBP()
 static std::vector<buildable_t> alienBuildables = { BA_A_SPAWN, BA_A_BOOSTER, BA_A_BARRICADE, BA_A_ACIDTUBE, BA_A_TRAPPER, BA_A_SPIKER, BA_A_HIVE };
 static std::vector<buildable_t> humanBuildables = { BA_H_SPAWN, BA_H_MGTURRET, BA_H_ROCKETPOD, BA_H_ARMOURY, BA_H_MEDISTAT };
 
-static std::string destroyedMessage( std::vector<buildable_t> &array )
+static std::string destroyedMessage( team_t team, std::vector<buildable_t> &array )
 {
 	std::string result = "\"We destroyed";
 	bool needComma = false;
@@ -249,17 +251,21 @@ static std::string destroyedMessage( std::vector<buildable_t> &array )
 			result += "^3" + std::to_string( num ) + "^* " + humanName;
 		}
 	}
-	result += "!\"";
+	result += " (stole ^3" + std::to_string( bpStolenAtThisFrame[ team ] ) + " ^7[dev] from the enemy!)\"";
 	return result;
 }
 
 void G_AnnounceDestructions()
 {
+	if ( !g_BPTransferNotifyTeam.Get() )
+	{
+		return;
+	}
 	for ( team_t team : { TEAM_HUMANS, TEAM_ALIENS } )
 	{
 		if ( bpStolenAtThisFrame[ team ] > 0 )
 		{
-			std::string msg = destroyedMessage( team == TEAM_HUMANS ? alienBuildables : humanBuildables );
+			std::string msg = destroyedMessage( team, team == TEAM_HUMANS ? alienBuildables : humanBuildables );
 			for ( int i = 0; i < level.maxclients; i++ )
 			{
 				if ( G_Team( &g_entities[ i ] ) == team )
@@ -300,7 +306,7 @@ void G_AnnounceStolenBP()
 			continue;
 		}
 		std::string msg = team == TEAM_HUMANS ? "\"^dHumans^*" : "\"^iAliens^*";
-		auto bar = [&] ( int bpAmount )
+		/*auto bar = [&] ( int bpAmount )
 		{
 			std::string result;
 			int step = ( g_BPInitialBudgetHumans.Get() + g_BPInitialBudgetAliens.Get() ) / 15;
@@ -314,12 +320,19 @@ void G_AnnounceStolenBP()
 				result += "█";
 			}
 			return result;
-		};
-		msg += " win ^3" + std::to_string( bpToTransfer ) + "^* build points, now ^3" + std::to_string( g_BPInitialBudgetHumans.Get() ) + " ^d" + bar( g_BPInitialBudgetHumans.Get() ) +  "^i" + bar( g_BPInitialBudgetAliens.Get() ) + " ^3" + std::to_string( g_BPInitialBudgetAliens.Get() ) + "\"";
+		};*/
+		msg += " win ^3" + std::to_string( bpToTransfer ) + "^* build points, now ^d" + std::to_string( g_BPInitialBudgetHumans.Get() )
+		                                                  //+ " ^d" + bar( g_BPInitialBudgetHumans.Get() ) +  "^i" + bar( g_BPInitialBudgetAliens.Get() )
+		                                                  + " ^7| ^i" + std::to_string( g_BPInitialBudgetAliens.Get() )
+		                                                  + "\"";
 		for ( int i = 0; i < level.maxclients; i++ )
 		{
-			trap_SendServerCommand( i, va( "print_tr %s ", msg.c_str() ) );
+			if ( g_BPTransferNotify.Get() )
+			{
+				trap_SendServerCommand( i, va( "print_tr %s ", msg.c_str() ) );
+			}
 		}
+		G_UpdateBPVampire( -1 );
 	}
 }
 
