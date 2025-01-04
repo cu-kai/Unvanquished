@@ -198,7 +198,7 @@ static const gentity_t *G_FindKillAssist( const gentity_t *self, const gentity_t
 	return assistant;
 }
 
-static Cvar::Cvar<bool> g_BPTransfer("g_BPTransfer", "BP transfer experiment", Cvar::NONE, false);
+Cvar::Cvar<bool> g_BPTransfer("g_BPTransfer", "BP transfer experiment", Cvar::NONE, false);
 static Cvar::Cvar<bool> g_BPTransferNotifyTeam("g_BPTransferNotifyTeam", "BP transfer experiment team notifications", Cvar::NONE, true);
 static Cvar::Cvar<float> g_BPTransferFactor("g_BPTransferFactor", "BP transfer factor", Cvar::NONE, 1.f);
 
@@ -310,10 +310,8 @@ void G_AnnounceStolenBP()
 		{
 			continue;
 		}
-		for ( int i = 0; i < level.maxclients; i++ )
-		{
-			trap_SendServerCommand( i, va( "bpvampire %d %d", g_BPInitialBudgetHumans.Get(), g_BPInitialBudgetAliens.Get() ) );
-		}
+		
+		G_UpdateBPVampire( -1 ); // update the BP bars for everyone
 
 		AnnounceDestructions( team );
 
