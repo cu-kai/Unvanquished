@@ -155,7 +155,7 @@ bool G_DretchCanDamageEntity( const gentity_t *ent )
 			// dretches can only bite buildables in construction or turrets
 			return !ent->spawned || BG_Buildable( ent->s.modelindex )->dretchAttackable;
 		default:
-			ASSERT_UNREACHABLE();
+			return false;
 	}
 }
 
