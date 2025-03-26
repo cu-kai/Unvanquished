@@ -33,7 +33,7 @@
 		<img class="circles" src="/ui/assets/background/circles2" />
 		<img class="black2" src="/ui/assets/background/black2" />
 
-		<div style="position: absolute; margin: auto; top: 0; bottom: 0; left: 0; right: 0; padding: 1em; width: 33em; height: 17em; background-color: rgba( 10%,10%,10%, 95%); color: #999999; border: .17em rgba( 0%, 0%, 0%, 35%);" id="bot_tactic_menu">
+		<div style="position: absolute; margin: auto; top: 0; bottom: 0; left: 0; right: 0; padding: 1em; width: 34em; height: 17em; background-color: rgba( 10%,10%,10%, 95%); color: #999999; border: .17em rgba( 0%, 0%, 0%, 35%);" id="bot_tactic_menu">
 			<h1>Bot Tactic</h1>
 			<h2>All Bots</h2>
 			<input type="button" onclick='Events.pushevent("execForm \"tactic stay-here 64\"; hide", event)'><button>Stay Here</button></input>
@@ -55,7 +55,7 @@
 			<input type="button" onclick='Events.pushevent("execForm \"tactic default b\"; hide", event)'><button>Default</button></input>
 		</div>
 
-		<div style="position: absolute; margin: auto; top: -21em; bottom: 0; left: 0; right: 0; padding: 1em; width: 33em; height: 17.75em; background-color: rgba( 10%,10%,10%, 95%); color: #999999; border: .17em rgba( 0%, 0%, 0%, 35%);" id="bot_equip_menu_human">
+		<div style="position: absolute; margin: auto; top: -21em; bottom: 0; left: 0; right: 0; padding: 1em; width: 34em; height: 17.75em; background-color: rgba( 10%,10%,10%, 95%); color: #999999; border: .17em rgba( 0%, 0%, 0%, 35%);" id="bot_equip_menu_human">
 			<h1>Toggle Bot Equipment</h1>
 			<row>
 				<input type="button" onclick='Events.pushevent("execForm \"botequip\"; hide", event)'><button>STATUS</button></input>
@@ -80,7 +80,7 @@
 			</row>
 		</div>
 
-		<div style="position: absolute; margin: auto; top: -18.625em; bottom: 0; left: 0; right: 0; padding: 1em; width: 33em; height: 13.25em; background-color: rgba( 10%,10%,10%, 95%); color: #999999; border: .17em rgba( 0%, 0%, 0%, 35%);" id="bot_equip_menu_alien">
+		<div style="position: absolute; margin: auto; top: -18.625em; bottom: 0; left: 0; right: 0; padding: 1em; width: 34em; height: 13.25em; background-color: rgba( 10%,10%,10%, 95%); color: #999999; border: .17em rgba( 0%, 0%, 0%, 35%);" id="bot_equip_menu_alien">
 			<h1>Toggle Bot Classes</h1>
 			<row>
 				<input type="button" onclick='Events.pushevent("execForm \"botequip\"; hide", event)'><button>STATUS</button></input>
@@ -97,7 +97,7 @@
 			</row>
 		</div>
 
-		<div style="position: absolute; margin: auto; top: 16em; bottom: 0; left: 0em; right: 0; padding: 1em; width: 33em; height: 8em; background-color: rgba( 10%,10%,10%, 95%); color: #999999; border: .17em rgba( 0%, 0%, 0%, 35%);" id="bot_enemy_menu">
+		<div style="position: absolute; margin: auto; top: 16em; bottom: 0; left: 0em; right: 0; padding: 1em; width: 34em; height: 8em; background-color: rgba( 10%,10%,10%, 95%); color: #999999; border: .17em rgba( 0%, 0%, 0%, 35%);" id="bot_enemy_menu">
 			<h1>Bots And Enemies</h1>
 			<h2>Attack Range</h2>
 			<row>
