@@ -1474,7 +1474,7 @@ static void CG_Rocket_BuildBotTacticList( const char *table )
 		setCommand( "0", "default", N_( "Default" ), N_( "The default behavior. This is what bots do when the game starts." ), "gfx/feedback/bottactic/default" );
 		setCommand( "1", "defend", N_( "Defend" ), N_( "The bots stay in the base." ), "gfx/feedback/bottactic/defend" );
 		setCommand( "2", "attack", N_( "Attack" ), N_( "The bots attack the enemy base." ), "gfx/feedback/bottactic/attack" );
-		setCommand( "3", "stay_here", N_( "Stay Here" ), N_( "The bots stay where you are currently." ), "gfx/feedback/bottactic/stay_here" );
+		setCommand( "3", "stay-here", N_( "Stay Here" ), N_( "The bots stay where you are currently." ), "gfx/feedback/bottactic/stay_here" );
 		setCommand( "4", "follow", N_( "Follow" ), N_( "The bots follow you wherever you go." ), "gfx/feedback/bottactic/follow" );
 	}
 }
