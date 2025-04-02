@@ -1563,6 +1563,7 @@ static void door_trigger_touch( gentity_t *self, gentity_t *other )
 	{
 		BinaryMover_act( self->parent, self, other );
 	}
+	G_FireEntity( self, other );
 }
 
 static void Think_MatchGroup( gentity_t *self )

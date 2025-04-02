@@ -302,6 +302,10 @@ static void Svcmd_EntityShow_f()
 	{
 		Log::Notice( "ID: ^5%s^*", selection->id );
 	}
+	if ( selection->parent != nullptr )
+	{
+		Log::Notice( "Parent: ^5%s^*", selection->parent->num() );
+	}
 	Log::Notice( "Capabilities:%s%s%s%s%s%s%s",
 			selection->act ? " acts" : "",
 			selection->think ? " thinks" : "",
