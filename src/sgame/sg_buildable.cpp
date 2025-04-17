@@ -35,6 +35,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "sg_cm_world.h"
 #include "sg_spawn.h" // for G_NewString()
 
+#include "sgame/lua/Interpreter.h"
+#include "sgame/lua/Entities.h"
+
 /**
  * @return Whether the means of death allow for an under-attack warning.
  */
@@ -1515,6 +1518,46 @@ static void BuildableSpawnCBSE(gentity_t *ent, buildable_t buildable) {
 	}
 }
 
+static void CallLuaCreationHandler( gentity_t *self )
+{
+	lua_State *L = Lua::State();
+
+	if ( L == nullptr )
+	{
+		return;
+	}
+
+	lua_getglobal( L, "Entities" );
+	if ( !lua_istable( L, -1 ) )
+	{
+		lua_pop( L, 1 );
+		return;
+	}
+
+	lua_pushstring( L, "creationHandler" );
+	lua_gettable( L, -2 );
+	int type = lua_type( L, -1 );
+	if ( type == LUA_TFUNCTION )
+	{
+		lua_pushinteger( L, self->num() );
+		Log::Verbose( "executing lua spawn handler for entity %d", self->num() );
+		if ( lua_pcall( L, 1, 0, 0 ) != 0 )
+		{
+			Log::Warn( lua_tostring( L, -1 ) );
+		}
+	}
+	else
+	{
+		if ( type != LUA_TNIL )
+		{
+			Log::Warn( "Lua entity spawn handler is not a function" );
+		}
+		lua_pop( L, 1 );
+	}
+	lua_pop( L, 1 );
+}
+
+
 static gentity_t *SpawnBuildable( gentity_t *builder, buildable_t buildable, const glm::vec3 &origin,
                          const vec3_t normal, const vec3_t angles, int groundEntNum )
 {
@@ -1745,6 +1788,8 @@ static gentity_t *SpawnBuildable( gentity_t *builder, buildable_t buildable, con
 
 	if( builder->client )
 		Beacon::Tag( built, (team_t)builder->client->pers.team, true );
+
+	CallLuaCreationHandler( built );
 
 	return built;
 }

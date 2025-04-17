@@ -181,6 +181,7 @@ void       G_SetOrigin( gentity_t *ent, const glm::vec3& origin );
 //
 void     G_SpawnEntitiesFromString();
 void     G_SpawnFakeEntities();
+void G_SetAutomaticEntityId( gentity_t *spawningEntity );
 
 //
 // g_spawn_mover.c
@@ -196,7 +197,7 @@ void G_notify_sensor_end( team_t winningTeam );
 
 gentityCallEvent_t      G_GetCallEventTypeFor( const char* event );
 void       G_EventFireEntity( gentity_t *self, gentity_t *activator, gentityCallEvent_t eventType );
-
+bool CallLuaEntityHandler( gentity_t *self, Str::StringRef eventName, gentity_t *activator );
 
 //==================================================================
 #endif /* ENTITIES_H_ */

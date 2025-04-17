@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "botlib/bot_api.h"
 #include "common/FileSystem.h"
 #include "lua/Interpreter.h"
+#include "shared/lua/register_lua_extensions.h"
 
 #define INTERMISSION_DELAY_TIME 1000
 
@@ -343,6 +344,7 @@ Cvar::Cvar<bool> g_bot_infiniteMomentum("g_bot_infiniteMomentum", "allow bots to
 Cvar::Cvar<int> g_bot_aliensenseRange("g_bot_aliensenseRange", "custom aliensense range for bots", Cvar::NONE, ALIENSENSE_RANGE);
 Cvar::Cvar<int> g_bot_radarRange("g_bot_radarRange", "custom radar range for bots", Cvar::NONE, ALIENSENSE_RANGE);
 Cvar::Cvar<std::string> g_bot_defaultBehavior("g_bot_defaultBehavior", "name of the default .bt file", Cvar::NONE, BOT_DEFAULT_BEHAVIOR);
+std::vector<Util::optional<glm::vec3>> preferredSpawnLocations(NUM_TEAMS);
 
 //</bot stuff>
 
@@ -1151,8 +1153,10 @@ static void G_SpawnClients( team_t team )
 
 		ent = &g_entities[ clientNum ];
 
+		vec3_t preferredLocation;
+		VectorCopy( preferredSpawnLocations[ team ] ? GLM4READ( *preferredSpawnLocations[ team ] ) : ent->client->pers.lastDeathLocation, preferredLocation );
 		if ( ( spawn = G_SelectUnvanquishedSpawnPoint( team,
-		               ent->client->pers.lastDeathLocation,
+		               preferredLocation,
 		               spawn_origin, spawn_angles ) ) )
 		{
 			if ( ent->client->pers.isBot )
@@ -2478,6 +2482,8 @@ void G_RunFrame( int levelTime )
 	G_CheckPmoveParamChanges();
 
 	std::array<int, BA_NUM_BUILDABLES> numBuildables = {};
+
+	Shared::Lua::UpdateTimers(level.time);
 
 	// go through all allocated objects
 	ent = &g_entities[ 0 ];
