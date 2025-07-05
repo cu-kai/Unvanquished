@@ -100,6 +100,12 @@ static void CG_PrintBPMessage_f()
 	cg.bpMessage = CG_Argv( 1 );
 }
 
+static void CG_SetCustomString() {
+	int id = atoi( CG_Argv( 1 ) );
+	std::string text = CG_Argv( 2 );
+	cg.customStrings[id] = text;
+}
+
 /*
 =================
 CG_ParseTeamInfo
@@ -1443,6 +1449,7 @@ static const consoleCommand_t svcommands[] =
 	{ "scores",           CG_ParseScores          },
 	{ "serverclosemenus", CG_ServerCloseMenus_f   },
 	{ "servermenu",       CG_ServerMenu_f         },
+	{ "set_custom_string",CG_SetCustomString      },
 	{ "tinfo",            CG_ParseTeamInfo        },
 	{ "vcommand",         CG_VCommand             },
 	{ "voice",            CG_ParseVoice           }

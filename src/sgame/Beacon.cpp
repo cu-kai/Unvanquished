@@ -395,7 +395,11 @@ namespace Beacon //this should eventually become a class
 	 */
 	void Propagate( gentity_t *ent )
 	{
-		ent->r.svFlags = SVF_BROADCAST | SVF_CLIENTMASK;
+		ent->r.svFlags = SVF_BROADCAST;
+
+		if ( ent->s.bc_team != TEAM_ALL ) {
+			ent->r.svFlags |= SVF_CLIENTMASK;
+		}
 
 		G_TeamToClientmask( (team_t)ent->s.bc_team, &ent->r.loMask, &ent->r.hiMask );
 

@@ -780,6 +780,17 @@ std::string CG_BeaconName( const cbeacon_t *b )
 			return Str::Format( "%s %s", prefix, suffix );
 		}
 
+		case BCT_OBJECTIVE:
+		{
+			int id = b->data;
+
+			if ( cg.customStrings.find( id ) != cg.customStrings.end() ) {
+				return cg.customStrings[id];
+			}
+
+			return "???";
+		}
+
 		default:
 			// All other beacons have a fixed name.
 			return BG_Beacon( b->type )->text[ 0 ];

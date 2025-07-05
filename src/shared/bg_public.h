@@ -1290,6 +1290,7 @@ enum beaconType_t
 	//indicators
 	BCT_TAG,
 	BCT_BASE,
+	BCT_OBJECTIVE,
 
 	//commands
 	BCT_ATTACK,
