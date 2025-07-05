@@ -233,6 +233,7 @@ extern Cvar::Cvar<int> g_bot_radarRange;
 extern Cvar::Modified<Cvar::Cvar<int>> g_bot_defaultFill;
 extern Cvar::Cvar<bool> g_bot_navmeshReduceTypes;
 extern Cvar::Cvar<std::string> g_bot_defaultBehavior;
+extern std::vector<Util::optional<glm::vec3>> preferredSpawnLocations;
 
 extern Cvar::Cvar<float> g_bot_verticalDistanceFactorAliens;
 extern Cvar::Cvar<float> g_bot_verticalDistanceFactorHumans;

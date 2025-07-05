@@ -30,6 +30,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "Entities.h"
 #include "CBSE.h"
 
+#include "sgame/lua/Interpreter.h"
+
 Cvar::Cvar<float> g_rewardDestruction( "g_rewardDestruction", "Reward players when they destroy a building by momentum * g_rewardDestruction", Cvar::NONE, 10.f );
 // damage region data
 damageRegion_t g_damageRegions[ PCL_NUM_CLASSES ][ MAX_DAMAGE_REGIONS ];
@@ -286,6 +288,58 @@ void G_AnnounceStolenBP()
 	}
 }
 
+static std::pair<int, int> CallLuaVampireHandler( int bp, team_t team )
+{
+	lua_State *L = Lua::State();
+
+	if ( L == nullptr )
+	{
+		return std::make_pair( bp, bp );
+	}
+
+	lua_getglobal( L, "Game" );
+	if ( !lua_istable( L, -1 ) )
+	{
+		lua_pop( L, 1 );
+		return std::make_pair( bp, bp );
+	}
+
+	lua_pushstring( L, "vampireHandler" );
+	lua_gettable( L, -2 );
+	int type = lua_type( L, -1 );
+	int bpToAdd = bp;
+	int bpToSubtract = bp;
+	if ( type == LUA_TFUNCTION )
+	{
+		lua_pushinteger( L, bp );
+		lua_pushstring( L, BG_TeamNamePlural( team ) );
+		if ( lua_pcall( L, 2, 2, 0 ) != 0 )
+		{
+			Log::Warn( lua_tostring( L, -1 ) );
+		}
+		if ( !lua_isnumber( L, -1 ) || !lua_isnumber( L, -2 ) )
+		{
+			Log::Warn( "Lua vampire handler did not return two numbers" );
+		}
+		else
+		{
+			bpToAdd = static_cast<int>( lua_tonumber( L, -2 ) );
+			bpToSubtract = static_cast<int>( lua_tonumber( L, -1 ) );
+		}
+		lua_pop( L, 2 );
+	}
+	else
+	{
+		if ( type != LUA_TNIL )
+		{
+			Log::Warn( "Lua vampire handler is not a function" );
+		}
+		lua_pop( L, 1 );
+	}
+	lua_pop( L, 1 );
+	return std::make_pair( bpToAdd, bpToSubtract );
+}
+
 static void TransferBPToEnemyTeam( gentity_t *self )
 {
 	if ( !g_BPVampire.Get() )
@@ -297,23 +351,33 @@ static void TransferBPToEnemyTeam( gentity_t *self )
 		return;
 	}
 	buildablesDestroyedAtThisFrame[ self->s.modelindex ]++;
-	int bpToTransfer = BG_Buildable(self->s.modelindex)->buildPoints * g_BPVampireFactor.Get();
+	int bp = BG_Buildable(self->s.modelindex)->buildPoints;
+	int bpToTransfer = bp * g_BPVampireFactor.Get();
+	team_t otherTeam = self->buildableTeam == TEAM_HUMANS ? TEAM_ALIENS : TEAM_HUMANS;
+	if ( level.team[ self->buildableTeam ].totalBudget - bpToTransfer < 1 )
+	{
+		bpToTransfer = level.team[ self->buildableTeam ].totalBudget - 1;
+	}
 	if ( bpToTransfer == 0 )
 	{
 		return;
 	}
-	team_t otherTeam = self->buildableTeam == TEAM_HUMANS ? TEAM_ALIENS : TEAM_HUMANS;
+	int bpToAdd = bpToTransfer;
+	int bpToSubtract = bpToTransfer;
+	std::tie( bpToAdd, bpToSubtract ) = CallLuaVampireHandler( bpToTransfer, self->buildableTeam );
+	bpToAdd = std::max( 1, std::min( bp, bpToAdd ) );
+	bpToSubtract = std::max( 1, std::min( bp, bpToSubtract ) );
 	switch ( otherTeam )
 	{
 	case TEAM_ALIENS:
-		level.team[ TEAM_HUMANS ].totalBudget -= bpToTransfer;
-		level.team[ TEAM_ALIENS ].totalBudget += bpToTransfer;
-		bpStolenAtThisFrame[ TEAM_ALIENS ] += bpToTransfer;
+		level.team[ TEAM_HUMANS ].totalBudget -= bpToSubtract;
+		level.team[ TEAM_ALIENS ].totalBudget += bpToAdd;
+		bpStolenAtThisFrame[ TEAM_ALIENS ] += bpToAdd;
 		break;
 	case TEAM_HUMANS:
-		level.team[ TEAM_HUMANS ].totalBudget += bpToTransfer;
-		level.team[ TEAM_ALIENS ].totalBudget -= bpToTransfer;
-		bpStolenAtThisFrame[ TEAM_HUMANS ] += bpToTransfer;
+		level.team[ TEAM_HUMANS ].totalBudget += bpToAdd;
+		level.team[ TEAM_ALIENS ].totalBudget -= bpToSubtract;
+		bpStolenAtThisFrame[ TEAM_HUMANS ] += bpToAdd;
 		break;
 	default:
 		break;

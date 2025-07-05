@@ -1404,6 +1404,8 @@ void ClientBegin( int clientNum )
 
 	G_UpdateBPVampire( client->num() );
 
+	CallLuaEntityHandler( &g_entities[ENTITYNUM_WORLD], "clientBegin", ent );
+
 	// display the help menu, if connecting the first time
 	if ( !client->sess.seenWelcome  )
 	{

@@ -797,7 +797,7 @@ static void ResetAutomaticEntityIdState()
 	autoIdCounters.clear();
 }
 
-static void SetAutomaticEntityId( gentity_t *spawningEntity )
+void G_SetAutomaticEntityId( gentity_t *spawningEntity )
 {
 	// generate automatic IDs for some map entities, in case the map does not set IDs.
 	// these IDs are persistent, they do not change when loading a map with or
@@ -931,7 +931,7 @@ static void G_SpawnGEntityFromSpawnVars()
 		return;
 	}
 
-	SetAutomaticEntityId( spawningEntity );
+	G_SetAutomaticEntityId( spawningEntity );
 
 	if ( spawningEntity->id != nullptr )
 	{

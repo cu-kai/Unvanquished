@@ -1179,6 +1179,8 @@ struct cg_t
 
 	std::string bpMessage;
 
+	std::unordered_map<int, std::string> customStrings;
+
 	// centerprinting
 	int  centerPrintTime;
 	float centerPrintSizeFactor;

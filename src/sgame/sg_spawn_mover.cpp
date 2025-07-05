@@ -982,6 +982,8 @@ static void BinaryMover_reached( gentity_t *ent )
 		}
 
 		G_FireEntity( ent, ent->activator );
+
+		CallLuaEntityHandler( ent, "pos2", nullptr );
 	}
 	else if ( ent->mapEntity.moverState == MOVER_2TO1 )
 	{
@@ -999,6 +1001,8 @@ static void BinaryMover_reached( gentity_t *ent )
 		{
 			trap_AdjustAreaPortalState( ent, false );
 		}
+
+		CallLuaEntityHandler( ent, "pos1", nullptr );
 	}
 	else if ( ent->mapEntity.moverState == ROTATOR_1TO2 )
 	{
@@ -1025,6 +1029,8 @@ static void BinaryMover_reached( gentity_t *ent )
 		}
 
 		G_FireEntity( ent, ent->activator );
+
+		CallLuaEntityHandler( ent, "pos2", nullptr );
 	}
 	else if ( ent->mapEntity.moverState == ROTATOR_2TO1 )
 	{
@@ -1042,6 +1048,8 @@ static void BinaryMover_reached( gentity_t *ent )
 		{
 			trap_AdjustAreaPortalState( ent, false );
 		}
+
+		CallLuaEntityHandler( ent, "pos1", nullptr );
 	}
 	else
 	{
@@ -1621,6 +1629,8 @@ static void Think_SpawnNewDoorTrigger( gentity_t *self )
 	// remember the thinnest axis
 	other->mapEntity.customNumber = best;
 	trap_LinkEntity( other );
+	G_SetAutomaticEntityId( other );
+	G_RegisterEntityId( other->num(), other->id );
 
 	if ( self->mapEntity.moverState < MODEL_POS1 )
 	{

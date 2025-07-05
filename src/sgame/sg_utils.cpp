@@ -1010,6 +1010,7 @@ bool gentity_t::Damage( float amount, gentity_t* source,
 		pain( this, source, amount );
 	}
 	health -= amount;
+	CallLuaEntityHandler( entity->oldEnt, "damage", source );
 	if ( health <= 0 && die )
 	{
 		die( this, nullptr, source, 0 );

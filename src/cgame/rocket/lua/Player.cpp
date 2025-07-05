@@ -103,6 +103,18 @@ static int GetcrosshairEntityNum( lua_State* L )
 	return 1;
 }
 
+static int Getorigin( lua_State* L )
+{
+	lua_newtable( L );
+	lua_pushnumber( L, cg.predictedPlayerState.origin[ 0 ] );
+	lua_setfield( L, -2, "x" );
+	lua_pushnumber( L, cg.predictedPlayerState.origin[ 1 ] );
+	lua_setfield( L, -2, "y" );
+	lua_pushnumber( L, cg.predictedPlayerState.origin[ 2 ] );
+	lua_setfield( L, -2, "z" );
+	return 1;
+}
+
 }  // namespace
 
 namespace Shared {
@@ -126,6 +138,7 @@ luaL_Reg PlayerGetters[] =
 	GETTER(credits),
 	GETTER(score),
 	GETTER(crosshairEntityNum),
+	GETTER(origin),
 
 	{ nullptr, nullptr }
 };

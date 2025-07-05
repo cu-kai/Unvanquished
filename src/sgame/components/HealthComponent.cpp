@@ -147,6 +147,11 @@ Util::optional<glm::vec3> direction, int flags, meansOfDeath_t meansOfDeath) {
 		client->lastCombatTime = level.time;
 	}
 
+	if ( entity.oldEnt->s.eType == entityType_t::ET_BUILDABLE && source->client )
+	{
+		CallLuaEntityHandler( entity.oldEnt, "damage", source );
+	}
+
 	if (client) {
 		// Save damage w/o armor modifier.
 		client->damage_received += (int)(amount + 0.5f);
