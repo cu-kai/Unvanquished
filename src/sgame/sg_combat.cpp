@@ -138,10 +138,10 @@ static const gentity_t *G_FindKillAssist( const gentity_t *self, const gentity_t
 }
 
 Cvar::Cvar<bool> g_BPVampire("g_BPVampire", "BP transfer experiment", Cvar::NONE, false);
-static Cvar::Cvar<bool> g_BPVampireNotifyTeam("g_BPVampireNotifyTeam", "BP transfer experiment team notifications", Cvar::NONE, true);
 Cvar::Cvar<float> g_BPVampireFactor("g_BPVampireFactor", "BP transfer factor", Cvar::NONE, 0.5f);
 
 static int bpStolenAtThisFrame[ NUM_TEAMS ];
+static struct { int bp; int time; int buildables[ BA_NUM_BUILDABLES]; } vampireRecentlyAnnounced[ NUM_TEAMS ];
 static int buildablesDestroyedAtThisFrame[ BA_NUM_BUILDABLES ];
 
 static std::vector<buildable_t> alienBuildables = { BA_A_SPAWN, BA_A_BOOSTER, BA_A_BARRICADE, BA_A_ACIDTUBE, BA_A_TRAPPER, BA_A_SPIKER, BA_A_HIVE, BA_A_OVERMIND };
@@ -160,6 +160,17 @@ static void ResetDestroyedBuildables( team_t team )
 
 static std::string DestroyedMessage( team_t team, std::vector<buildable_t> &array )
 {
+	if ( level.time - vampireRecentlyAnnounced[ team ].time > 3000 )
+	{
+		vampireRecentlyAnnounced[ team ].bp = 0;
+		memset( vampireRecentlyAnnounced[ team ].buildables, 0, sizeof vampireRecentlyAnnounced[ team ].buildables );
+	}
+	vampireRecentlyAnnounced[ team ].time = level.time;
+	vampireRecentlyAnnounced[ team ].bp += bpStolenAtThisFrame[ team ];
+	for ( int i = BA_NONE + 1; i < BA_NUM_BUILDABLES; i++ )
+	{
+		vampireRecentlyAnnounced[ team ].buildables[ i ] += buildablesDestroyedAtThisFrame[ i ];
+	}
 	std::string result = "We destroyed";
 	bool needComma = false;
 	auto sep = [&] ()
@@ -169,7 +180,7 @@ static std::string DestroyedMessage( team_t team, std::vector<buildable_t> &arra
 	};
 	for ( auto buildable : array )
 	{
-		int num = buildablesDestroyedAtThisFrame[ buildable ];
+		int num = vampireRecentlyAnnounced[team].buildables[ buildable ];
 		if ( num > 0 )
 		{
 			sep();
@@ -194,19 +205,15 @@ static std::string DestroyedMessage( team_t team, std::vector<buildable_t> &arra
 		}
 	}
 	result += "!";
-	if ( bpStolenAtThisFrame[ team ] > 0 )
+	if ( vampireRecentlyAnnounced[ team ].bp > 0 )
 	{
-		result += " ^3+" + std::to_string( bpStolenAtThisFrame[ team ] ) + " ^7Build Points";
+		result += " ^3+" + std::to_string( vampireRecentlyAnnounced[ team ].bp ) + " ^7Build Points";
 	}
 	return Quote( result );
 }
 
 static void AnnounceDestructions( team_t team )
 {
-	if ( !g_BPVampireNotifyTeam.Get() )
-	{
-		return;
-	}
 	std::string msg = DestroyedMessage( team, team == TEAM_HUMANS ? alienBuildables : humanBuildables );
 	for ( int i = 0; i < level.maxclients; i++ )
 	{
