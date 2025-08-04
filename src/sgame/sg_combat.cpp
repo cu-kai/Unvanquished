@@ -147,6 +147,27 @@ static int buildablesDestroyedAtThisFrame[ BA_NUM_BUILDABLES ];
 static std::vector<buildable_t> alienBuildables = { BA_A_SPAWN, BA_A_BOOSTER, BA_A_BARRICADE, BA_A_ACIDTUBE, BA_A_TRAPPER, BA_A_SPIKER, BA_A_HIVE, BA_A_OVERMIND };
 static std::vector<buildable_t> humanBuildables = { BA_H_SPAWN, BA_H_MGTURRET, BA_H_ROCKETPOD, BA_H_ARMOURY, BA_H_MEDISTAT, BA_H_REACTOR };
 
+static std::vector<std::string> buildableColours = {
+	"*", 	// BA_NONE
+	"<", 	// BA_A_SPAWN
+	"D",	// BA_A_OVERMIND
+	"@",	// BA_A_BARRICADE
+	"2",	// BA_A_ACIDTUBE
+	"E",	// BA_A_TRAPPER
+	"J",	// BA_A_BOOSTER
+	"L",	// BA_A_HIVE
+	"?",	// BA_A_LEECH
+	"A",	// BA_A_SPIKER
+	
+	"D",	// BA_H_SPAWN
+	"9",	// BA_H_MGTURRET
+	"A",	// BA_H_ROCKETPOD
+	"B",	// BA_H_ARMOURY
+	"F",	// BA_H_MEDISTAT
+	"?",	// BA_H_DRILL
+	"5",	// BA_H_REACTOR
+};
+
 static void ResetDestroyedBuildables( team_t team )
 {
 	bpStolenAtThisFrame[ team ] = 0;
@@ -171,11 +192,11 @@ static std::string DestroyedMessage( team_t team, std::vector<buildable_t> &arra
 	{
 		vampireRecentlyAnnounced[ team ].buildables[ i ] += buildablesDestroyedAtThisFrame[ i ];
 	}
-	std::string result = "We destroyed";
+	std::string result = "^7We destroyed ";
 	bool needComma = false;
 	auto sep = [&] ()
 	{
-		result += ( needComma ? ", " : " " );
+		result += ( needComma ? "^7, " : "^7 " );
 		needComma = true;
 	};
 	for ( auto buildable : array )
@@ -196,15 +217,15 @@ static std::string DestroyedMessage( team_t team, std::vector<buildable_t> &arra
 					humanName += "s";
 				}
 			}
-			result += "^3" + std::to_string( num ) + "^* ";
+			result += "^3" + std::to_string( num ) + " ";
 			if ( buildable == BA_H_REACTOR || buildable == BA_A_OVERMIND )
 			{
 				std::transform( humanName.begin(), humanName.end(), humanName.begin(), [] (unsigned char c) { return std::toupper(c); } );
 			}
-			result += humanName;
+			result += "^" + buildableColours[ buildable ] + humanName;
 		}
 	}
-	result += "!";
+	result += "^7!";
 	if ( vampireRecentlyAnnounced[ team ].bp > 0 )
 	{
 		result += " ^3+" + std::to_string( vampireRecentlyAnnounced[ team ].bp ) + " ^7Build Points";
