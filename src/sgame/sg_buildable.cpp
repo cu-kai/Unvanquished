@@ -870,6 +870,34 @@ static int G_FreeMarkedBuildables( gentity_t *deconner, char *readable,
 		nums[ 0 ] = '\0';
 	}
 
+	// fix the infamous delayed layout load crash.
+	// we cannot be expected to understand this marvelous piece of code.
+	// instead, notice that the argument `deconner` is a client when a player
+	// caused this function to be called by building.
+	// if, however, this function is called for a building spawned in the way
+	// layout loading does, the argument is not a client.
+	// instead, it always seems to be a buildable.
+	// you may ask: why? i do not know.
+	// we simply return zero in this case, carefully avoiding any call
+	// to Q_strcat, which in turn calls Q_strncpyz.
+	// you may ask: why do we return zero, and not some other number?
+	// why is the result never used anywhere?
+	// i do not know.
+	if ( deconner == nullptr )
+	{
+		// by my observations, this does not happen.
+		// however, we have to be very careful in this file.
+		return 0;
+	}
+	else
+	{
+		int deconnerNum = deconner - g_entities;
+		if ( deconnerNum < 0 || deconnerNum >= MAX_CLIENTS )
+		{
+			return 0;
+		}
+	}
+
 	for ( i = 0; i < level.numBuildablesForRemoval; i++ )
 	{
 		ent = level.markedBuildables[ i ];
