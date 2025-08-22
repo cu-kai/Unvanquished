@@ -481,6 +481,12 @@ static const g_admin_cmd_t     g_admin_cmds[] =
 	},
 
 	{
+		"versions",         G_admin_versions,        false, "versions",
+		N_("view client versions"),
+		""
+	},
+
+	{
 		"warn",         G_admin_warn,        false, "warn",
 		N_("warn a player about his behaviour"),
 		N_("[^3name|slot#^7] [^3reason^7]")
@@ -3804,6 +3810,37 @@ bool G_admin_changedevmap( gentity_t *ent )
 	                ( layout[ 0 ] ) ? QQ( N_( "(forcing layout '") ) : QQ( "" ),
 	                ( layout[ 0 ] ) ? Quote( layout ) : QQ( "" ),
 	                ( layout[ 0 ] ) ? QQ( "')" ) : QQ( "" ) );
+	return true;
+}
+
+bool G_admin_versions( gentity_t * ent )
+{
+	int i;
+	std::string p;
+	char userinfo[ MAX_INFO_STRING ];
+
+	ADMBP_begin();
+
+	for ( i = 0; i < level.maxclients; i++ ) {
+		gclient_t *client = level.clients + i;
+
+		if ( client->pers.connected == CON_DISCONNECTED )
+			continue;
+
+		trap_GetUserinfo( i, userinfo, sizeof( userinfo ) );
+
+		if ( client->pers.isBot )
+			p = "bot";
+		else
+			p = Info_ValueForKey( userinfo, "version" );
+
+		if ( !p[0] )
+			p = "unknown";
+
+		ADMBP( Str::Format( "%02i: %s", i, p ) );
+	}
+
+	ADMBP_end();
 	return true;
 }
 
